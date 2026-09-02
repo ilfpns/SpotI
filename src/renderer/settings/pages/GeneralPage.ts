@@ -62,7 +62,9 @@ export function initGeneralPage() {
 function initVolume() {
   const slider = document.getElementById("volume-slider") as HTMLInputElement;
   const valueEl = document.getElementById("volume-value") as HTMLElement;
+  const errorEl = document.getElementById("volume-error") as HTMLElement;
   let debounceHandle: ReturnType<typeof setTimeout> | null = null;
+  let errorHideHandle: ReturnType<typeof setTimeout> | null = null;
 
   window.petAPI.spotify.getVolume().then((result) => {
     if (result.ok && result.data !== null && result.data !== undefined) {
@@ -74,8 +76,14 @@ function initVolume() {
   slider.addEventListener("input", () => {
     valueEl.textContent = `${slider.value}%`;
     if (debounceHandle) clearTimeout(debounceHandle);
-    debounceHandle = setTimeout(() => {
-      window.petAPI.spotify.setVolume(Number(slider.value));
+    debounceHandle = setTimeout(async () => {
+      const result = await window.petAPI.spotify.setVolume(Number(slider.value));
+      if (!result.ok) {
+        errorEl.textContent = t(`error.${result.error ?? "unknown_error"}`);
+        errorEl.hidden = false;
+        if (errorHideHandle) clearTimeout(errorHideHandle);
+        errorHideHandle = setTimeout(() => (errorEl.hidden = true), 3000);
+      }
     }, 250);
   });
 }

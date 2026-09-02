@@ -2,6 +2,13 @@ import { app } from "electron";
 import { join } from "node:path";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import type { BestTrack, DaySummary, HistorySummary } from "../shared/types";
+import { HISTORY_DAYS_WINDOW } from "../shared/constants";
+
+// Keep some slack past the heatmap's own display window so a day just past
+// it doesn't get pruned mid-query, but still bound how much the file (and
+// the in-memory cache kept alive for the app's whole session) can grow —
+// otherwise every day of every track ever played stays in RAM forever.
+const RETENTION_DAYS = HISTORY_DAYS_WINDOW + 30;
 
 interface TrackBucket {
   title: string | null;
@@ -27,6 +34,24 @@ let cached: StoredHistory | null = null;
 let dirty = false;
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
+function dateKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+// Date keys are zero-padded YYYY-MM-DD, so lexicographic comparison is also
+// chronological comparison.
+function pruneOldDays(store: StoredHistory): void {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - RETENTION_DAYS);
+  const cutoffKey = dateKey(cutoff);
+  for (const key of Object.keys(store.days)) {
+    if (key < cutoffKey) delete store.days[key];
+  }
+}
+
 function load(): StoredHistory {
   if (cached) return cached;
 
@@ -35,6 +60,7 @@ function load(): StoredHistory {
     try {
       const parsed = JSON.parse(readFileSync(path, "utf-8"));
       cached = { days: parsed?.days && typeof parsed.days === "object" ? parsed.days : {} };
+      pruneOldDays(cached);
       return cached;
     } catch {
       // fall through to an empty store
@@ -71,13 +97,6 @@ export function flushHistoryNow(): void {
   if (dirty) writeToDisk();
 }
 
-function dateKey(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
 export function recordListening(
   trackId: string,
   title: string | null,
@@ -88,7 +107,11 @@ export function recordListening(
   if (deltaMs <= 0) return;
   const store = load();
   const key = dateKey(new Date());
+  const isNewDay = !store.days[key];
   const day = (store.days[key] ??= { totalMs: 0, tracks: {} });
+  // Only worth checking once per new day (e.g. right after midnight) rather
+  // than on every tick — a long-running session should still stay bounded.
+  if (isNewDay) pruneOldDays(store);
   day.totalMs += deltaMs;
   const track = (day.tracks[trackId] ??= { title, artist, albumArtUrl, ms: 0 });
   track.ms += deltaMs;
