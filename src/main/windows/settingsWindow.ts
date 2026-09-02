@@ -36,6 +36,13 @@ export function showSettingsWindow(): BrowserWindow {
     if (!win.isDestroyed()) win.setIcon(icon);
   });
 
+  win.webContents.on("console-message", (_e, _level, message) => {
+    console.log("[settings-renderer]", message);
+  });
+  win.webContents.on("did-fail-load", (_e, code, description) => {
+    console.log("[settingsWindow] did-fail-load", code, description);
+  });
+
   if (process.env.ELECTRON_RENDERER_URL) {
     win.loadURL(`${process.env.ELECTRON_RENDERER_URL}/settings/index.html`);
   } else {

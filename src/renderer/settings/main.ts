@@ -3,6 +3,7 @@ import { initI18n, t, onLocaleChange } from "../i18nClient";
 import { initSpotifyPage } from "./pages/SpotifyPage";
 import { initGeneralPage } from "./pages/GeneralPage";
 import { initThemePage } from "./pages/ThemePage";
+import { initHistoryPage } from "./pages/HistoryPage";
 
 await initI18n();
 
@@ -60,3 +61,4 @@ navItems.forEach((nav) => {
 initSpotifyPage();
 initGeneralPage();
 initThemePage();
+initHistoryPage();

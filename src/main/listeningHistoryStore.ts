@@ -125,6 +125,15 @@ export function getBestTrackForDay(date: string): BestTrack | null {
   return best;
 }
 
+export function clearHistory(): void {
+  cached = { days: {} };
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  }
+  writeToDisk();
+}
+
 export function getHistorySummary(days: number): HistorySummary {
   const summaries = daySummaries(days);
 

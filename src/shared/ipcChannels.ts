@@ -62,6 +62,7 @@ export const IpcChannels = {
 
   getHistorySummary: "history:get-summary",
   getBestTrackForDay: "history:get-best-track-for-day",
+  clearHistory: "history:clear",
 
   resetSettings: "settings:reset",
 } as const;

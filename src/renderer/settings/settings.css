@@ -148,6 +148,11 @@ body {
   color: #a855f7;
 }
 
+.nav-item[data-page="history"].active {
+  background: rgba(245, 158, 11, 0.16);
+  color: #f59e0b;
+}
+
 .nav-icon {
   width: 16px;
   height: 16px;
@@ -533,6 +538,10 @@ body {
 }
 
 /* History page — summary stats. */
+.history-summary-card {
+  max-width: 640px;
+}
+
 .history-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -546,6 +555,10 @@ body {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid rgba(var(--ink), 0.08);
+}
+
+.history-stat {
+  min-width: 0;
 }
 
 .history-stat-value {

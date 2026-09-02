@@ -156,6 +156,9 @@ const petAPI = {
   getBestTrackForDay(date: string): Promise<BestTrack | null> {
     return ipcRenderer.invoke(IpcChannels.getBestTrackForDay, date);
   },
+  clearHistory(): Promise<void> {
+    return ipcRenderer.invoke(IpcChannels.clearHistory);
+  },
 
   spotify: {
     login(): Promise<{ ok: boolean; message?: string }> {

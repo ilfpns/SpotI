@@ -29,6 +29,14 @@
             </svg>
             <span data-i18n="nav.theme"></span>
           </button>
+          <button class="nav-item" data-page="history">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4z"
+              />
+            </svg>
+            <span data-i18n="nav.history"></span>
+          </button>
           <button class="nav-item" data-page="spotify">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
               <path
@@ -164,6 +172,92 @@
                 <div class="row-desc" data-i18n="card.border.desc"></div>
               </div>
               <div id="border-toggle"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" data-page="history" hidden>
+          <h1 data-i18n="page.history.title"></h1>
+
+          <div class="card history-summary-card">
+            <div class="history-summary-grid">
+              <div class="history-stat">
+                <div id="history-total" class="history-stat-value"></div>
+                <div class="history-stat-label" data-i18n="history.total"></div>
+              </div>
+              <div class="history-stat">
+                <div id="history-week" class="history-stat-value"></div>
+                <div class="history-stat-label" data-i18n="history.thisWeek"></div>
+              </div>
+              <div class="history-stat">
+                <div id="history-best-day" class="history-stat-value"></div>
+                <div class="history-stat-label" data-i18n="history.bestDay"></div>
+              </div>
+              <div class="history-stat">
+                <div id="history-average" class="history-stat-value"></div>
+                <div class="history-stat-label" data-i18n="history.average"></div>
+              </div>
+            </div>
+            <div class="history-streaks">
+              <div class="history-stat">
+                <div id="history-longest-streak" class="history-stat-value"></div>
+                <div class="history-stat-label" data-i18n="history.longestStreak"></div>
+              </div>
+              <div class="history-stat">
+                <div id="history-current-streak" class="history-stat-value"></div>
+                <div class="history-stat-label" data-i18n="history.currentStreak"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card history-heatmap-card">
+            <div class="history-heatmap-header">
+              <div class="card-title" data-i18n="history.heatmap.title"></div>
+              <div id="history-view-segmented" class="segmented"></div>
+            </div>
+
+            <div id="history-heatmap-2d-container" class="heatmap-2d-row">
+              <div class="heatmap-weekdays">
+                <span></span>
+                <span data-i18n="weekday.mon"></span>
+                <span></span>
+                <span data-i18n="weekday.wed"></span>
+                <span></span>
+                <span data-i18n="weekday.fri"></span>
+                <span></span>
+              </div>
+              <div class="heatmap-2d-scroll">
+                <div id="history-heatmap-2d" class="heatmap-2d"></div>
+              </div>
+            </div>
+
+            <div id="history-heatmap-3d-container" class="heatmap-3d-wrap" hidden>
+              <canvas id="history-heatmap-3d-canvas"></canvas>
+            </div>
+
+            <div class="heatmap-legend">
+              <span data-i18n="history.less"></span>
+              <span class="legend-swatch" style="background: var(--heat-0)"></span>
+              <span class="legend-swatch" style="background: var(--heat-1)"></span>
+              <span class="legend-swatch" style="background: var(--heat-2)"></span>
+              <span class="legend-swatch" style="background: var(--heat-3)"></span>
+              <span class="legend-swatch" style="background: var(--heat-4)"></span>
+              <span data-i18n="history.more"></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div id="history-best-track-title" class="card-title"></div>
+            <div id="history-best-track" class="history-best-track"></div>
+          </div>
+
+          <div class="card">
+            <div class="row">
+              <div class="row-text">
+                <div class="row-title" data-i18n="card.clearHistory.title"></div>
+                <div class="row-desc" data-i18n="card.clearHistory.desc"></div>
+              </div>
+              <button id="clear-history-button" class="danger-button" data-i18n="button.clear"></button>
             </div>
           </div>
         </section>

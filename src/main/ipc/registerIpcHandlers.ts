@@ -36,7 +36,7 @@ import {
 } from "../appSettingsStore";
 import { DEFAULT_UI_THEME, DEFAULT_SHOW_BORDER } from "../../shared/theme";
 import type { UiTheme } from "../../shared/theme";
-import { getHistorySummary, getBestTrackForDay } from "../listeningHistoryStore";
+import { getHistorySummary, getBestTrackForDay, clearHistory } from "../listeningHistoryStore";
 import { HISTORY_DAYS_WINDOW, DEFAULT_POLLING_SPEED } from "../../shared/constants";
 
 export function registerIpcHandlers() {
@@ -204,6 +204,7 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IpcChannels.getHistorySummary, () => getHistorySummary(HISTORY_DAYS_WINDOW));
   ipcMain.handle(IpcChannels.getBestTrackForDay, (_e, date: string) => getBestTrackForDay(date));
+  ipcMain.handle(IpcChannels.clearHistory, () => clearHistory());
 
   // The reset target values are the ones explicitly requested for this
   // button, not necessarily each setting's fresh-install default (e.g. the
