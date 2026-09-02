@@ -4,20 +4,26 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import {
   DEFAULT_PET_SIZE,
   DEFAULT_POLLING_SPEED,
+  DEFAULT_HOVER_DELAY,
   type PetSize,
   type PollingSpeed,
+  type HoverDelay,
 } from "../shared/constants";
 
 interface StoredSettings {
   petSize: PetSize;
   notifyTrackChange: boolean;
   pollingSpeed: PollingSpeed;
+  hoverDelay: HoverDelay;
+  spinAnimation: boolean;
 }
 
 const DEFAULTS: StoredSettings = {
   petSize: DEFAULT_PET_SIZE,
   notifyTrackChange: true,
   pollingSpeed: DEFAULT_POLLING_SPEED,
+  hoverDelay: DEFAULT_HOVER_DELAY,
+  spinAnimation: true,
 };
 
 function filePath(): string {
@@ -41,6 +47,9 @@ function load(): StoredSettings {
         notifyTrackChange:
           typeof parsed?.notifyTrackChange === "boolean" ? parsed.notifyTrackChange : DEFAULTS.notifyTrackChange,
         pollingSpeed: parsed?.pollingSpeed === "normal" ? "normal" : DEFAULTS.pollingSpeed,
+        hoverDelay:
+          parsed?.hoverDelay === "fast" || parsed?.hoverDelay === "slow" ? parsed.hoverDelay : DEFAULTS.hoverDelay,
+        spinAnimation: typeof parsed?.spinAnimation === "boolean" ? parsed.spinAnimation : DEFAULTS.spinAnimation,
       };
       return cached;
     } catch {
@@ -77,6 +86,22 @@ export function getPollingSpeed(): PollingSpeed {
 }
 export function setPollingSpeed(speed: PollingSpeed): void {
   load().pollingSpeed = speed;
+  persist();
+}
+
+export function getHoverDelay(): HoverDelay {
+  return load().hoverDelay;
+}
+export function setHoverDelay(delay: HoverDelay): void {
+  load().hoverDelay = delay;
+  persist();
+}
+
+export function getSpinAnimation(): boolean {
+  return load().spinAnimation;
+}
+export function setSpinAnimation(value: boolean): void {
+  load().spinAnimation = value;
   persist();
 }
 

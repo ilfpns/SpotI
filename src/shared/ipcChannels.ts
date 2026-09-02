@@ -60,6 +60,13 @@ export const IpcChannels = {
   getPollingSpeed: "settings:get-polling-speed",
   setPollingSpeed: "settings:set-polling-speed",
 
+  getHoverDelay: "settings:get-hover-delay",
+  setHoverDelay: "settings:set-hover-delay",
+
+  getSpinAnimation: "settings:get-spin-animation",
+  setSpinAnimation: "settings:set-spin-animation",
+  spinAnimationChanged: "settings:spin-animation-changed",
+
   getHistorySummary: "history:get-summary",
   getBestTrackForDay: "history:get-best-track-for-day",
   clearHistory: "history:clear",

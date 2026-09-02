@@ -3,6 +3,7 @@ import { getPetWindow } from "./windows/petWindow";
 import { getPopupWindow, positionPopupNearPet } from "./windows/popupWindow";
 import { IpcChannels } from "../shared/ipcChannels";
 import { POPUP_DISMISS_DELAY_MS } from "../shared/constants";
+import { getHoverDelay } from "./appSettingsStore";
 
 // Must be >= the popup's CSS ".fast-exit" transform/opacity transition
 // duration (see renderer/popup/popup.css), or the window gets hidden while
@@ -88,7 +89,7 @@ function scheduleHide() {
         onVisibilityChange?.(false);
       }
     }, FADE_OUT_MS);
-  }, POPUP_DISMISS_DELAY_MS);
+  }, POPUP_DISMISS_DELAY_MS[getHoverDelay()]);
 }
 
 /**

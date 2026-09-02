@@ -24,7 +24,13 @@ export const PET_SIZE_PX: Record<PetSize, number> = {
 };
 export const DEFAULT_PET_SIZE: PetSize = "medium";
 
-export const POPUP_DISMISS_DELAY_MS = 60;
+export type HoverDelay = "fast" | "normal" | "slow";
+export const POPUP_DISMISS_DELAY_MS: Record<HoverDelay, number> = {
+  fast: 30,
+  normal: 60,
+  slow: 150,
+};
+export const DEFAULT_HOVER_DELAY: HoverDelay = "normal";
 
 /** How many trailing days the listening-history heatmap covers (52 weeks). */
 export const HISTORY_DAYS_WINDOW = 364;

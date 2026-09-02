@@ -4,6 +4,7 @@ import { t, onLocaleChange } from "../i18nClient";
 export class TrackInfo {
   private discEl: HTMLElement;
   private metaEl: HTMLElement;
+  private spinEnabled = true;
 
   constructor(discContainer: HTMLElement, metaContainer: HTMLElement) {
     this.discEl = document.createElement("div");
@@ -17,13 +18,22 @@ export class TrackInfo {
     this.render(null);
     window.petAPI.spotify.onNowPlayingChanged((state) => this.render(state));
     onLocaleChange(() => this.render(this.lastState));
+
+    window.petAPI.getSpinAnimation().then((enabled) => {
+      this.spinEnabled = enabled;
+      this.render(this.lastState);
+    });
+    window.petAPI.onSpinAnimationChanged((enabled) => {
+      this.spinEnabled = enabled;
+      this.render(this.lastState);
+    });
   }
 
   private lastState: NowPlayingState | null = null;
 
   render(state: NowPlayingState | null) {
     this.lastState = state;
-    const spinClass = state?.isPlaying ? "spinning" : "";
+    const spinClass = state?.isPlaying && this.spinEnabled ? "spinning" : "";
     const art = state?.albumArtUrl
       ? `<img class="disc ${spinClass}" src="${state.albumArtUrl}" alt="" />`
       : `<div class="disc ${spinClass}"></div>`;

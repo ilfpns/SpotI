@@ -578,6 +578,7 @@ body {
   font-size: 11.5px;
   color: rgba(var(--ink), 0.55);
   margin-top: 2px;
+  overflow-wrap: anywhere;
 }
 
 .history-heatmap-card {

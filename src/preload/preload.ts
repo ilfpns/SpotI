@@ -3,7 +3,7 @@ import { IpcChannels } from "../shared/ipcChannels";
 import type { AuthStatus, NowPlayingState, SpotifyResult } from "../shared/types";
 import type { Locale } from "../shared/i18n";
 import type { UiTheme } from "../shared/theme";
-import type { PetSize, PollingSpeed } from "../shared/constants";
+import type { PetSize, PollingSpeed, HoverDelay } from "../shared/constants";
 import type { BestTrack, HistorySummary } from "../shared/types";
 
 const petAPI = {
@@ -144,6 +144,25 @@ const petAPI = {
   },
   setPollingSpeed(speed: PollingSpeed) {
     ipcRenderer.send(IpcChannels.setPollingSpeed, speed);
+  },
+
+  getHoverDelay(): Promise<HoverDelay> {
+    return ipcRenderer.invoke(IpcChannels.getHoverDelay);
+  },
+  setHoverDelay(delay: HoverDelay) {
+    ipcRenderer.send(IpcChannels.setHoverDelay, delay);
+  },
+
+  getSpinAnimation(): Promise<boolean> {
+    return ipcRenderer.invoke(IpcChannels.getSpinAnimation);
+  },
+  setSpinAnimation(value: boolean) {
+    ipcRenderer.send(IpcChannels.setSpinAnimation, value);
+  },
+  onSpinAnimationChanged(cb: (value: boolean) => void) {
+    const handler = (_e: unknown, value: boolean) => cb(value);
+    ipcRenderer.on(IpcChannels.spinAnimationChanged, handler);
+    return () => ipcRenderer.removeListener(IpcChannels.spinAnimationChanged, handler);
   },
 
   resetSettings(): Promise<void> {

@@ -1,5 +1,5 @@
 import { LOCALES, type Locale } from "../../../shared/i18n";
-import type { PetSize, PollingSpeed } from "../../../shared/constants";
+import type { PetSize, PollingSpeed, HoverDelay } from "../../../shared/constants";
 import { getCurrentLocale, t } from "../../i18nClient";
 import { createToggle, createSegmented } from "../uiControls";
 
@@ -56,7 +56,32 @@ export function initGeneralPage() {
   initPetSize();
   initNotifyTrackChange();
   initPollingSpeed();
+  initHoverDelay();
+  initSpinAnimation();
   initResetButton();
+}
+
+function initHoverDelay() {
+  const root = document.getElementById("hover-delay-segmented") as HTMLElement;
+  window.petAPI.getHoverDelay().then((value) => {
+    createSegmented<HoverDelay>(
+      root,
+      [
+        { value: "fast", labelKey: "speed.fast" },
+        { value: "normal", labelKey: "speed.normal" },
+        { value: "slow", labelKey: "speed.slow" },
+      ],
+      value,
+      (next) => window.petAPI.setHoverDelay(next),
+    );
+  });
+}
+
+function initSpinAnimation() {
+  const root = document.getElementById("spin-animation-toggle") as HTMLElement;
+  window.petAPI.getSpinAnimation().then((value) => {
+    createToggle(root, value, (next) => window.petAPI.setSpinAnimation(next));
+  });
 }
 
 function initVolume() {

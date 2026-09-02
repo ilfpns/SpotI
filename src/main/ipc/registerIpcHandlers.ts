@@ -33,11 +33,20 @@ import {
   setNotifyTrackChange,
   getPollingSpeed,
   setPollingSpeed,
+  getHoverDelay,
+  setHoverDelay,
+  getSpinAnimation,
+  setSpinAnimation,
 } from "../appSettingsStore";
 import { DEFAULT_UI_THEME, DEFAULT_SHOW_BORDER } from "../../shared/theme";
 import type { UiTheme } from "../../shared/theme";
 import { getHistorySummary, getBestTrackForDay, clearHistory } from "../listeningHistoryStore";
-import { HISTORY_DAYS_WINDOW, DEFAULT_POLLING_SPEED } from "../../shared/constants";
+import {
+  HISTORY_DAYS_WINDOW,
+  DEFAULT_POLLING_SPEED,
+  DEFAULT_HOVER_DELAY,
+  type HoverDelay,
+} from "../../shared/constants";
 
 export function registerIpcHandlers() {
   ipcMain.handle(IpcChannels.authStart, async () => {
@@ -202,6 +211,17 @@ export function registerIpcHandlers() {
     refreshPollingSpeed();
   });
 
+  ipcMain.handle(IpcChannels.getHoverDelay, () => getHoverDelay());
+  ipcMain.on(IpcChannels.setHoverDelay, (_e, delay: HoverDelay) => setHoverDelay(delay));
+
+  ipcMain.handle(IpcChannels.getSpinAnimation, () => getSpinAnimation());
+  ipcMain.on(IpcChannels.setSpinAnimation, (_e, value: boolean) => {
+    setSpinAnimation(value);
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(IpcChannels.spinAnimationChanged, value);
+    }
+  });
+
   ipcMain.handle(IpcChannels.getHistorySummary, () => getHistorySummary(HISTORY_DAYS_WINDOW));
   ipcMain.handle(IpcChannels.getBestTrackForDay, (_e, date: string) => getBestTrackForDay(date));
   ipcMain.handle(IpcChannels.clearHistory, () => clearHistory());
@@ -227,6 +247,8 @@ export function registerIpcHandlers() {
     setNotifyTrackChange(true);
     setPollingSpeed(DEFAULT_POLLING_SPEED);
     refreshPollingSpeed();
+    setHoverDelay(DEFAULT_HOVER_DELAY);
+    setSpinAnimation(true);
 
     invalidatePetIconCache();
     for (const win of BrowserWindow.getAllWindows()) {
@@ -236,6 +258,7 @@ export function registerIpcHandlers() {
       win.webContents.send(IpcChannels.fontColorChanged, RESET_COLOR);
       win.webContents.send(IpcChannels.uiThemeChanged, DEFAULT_UI_THEME);
       win.webContents.send(IpcChannels.showBorderChanged, DEFAULT_SHOW_BORDER);
+      win.webContents.send(IpcChannels.spinAnimationChanged, true);
     }
     const icon = await getPetIcon();
     getPetTrayIconSetter()?.(icon);
