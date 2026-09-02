@@ -8,6 +8,8 @@ files:
 win:
   target:
     - nsis
+    - portable
+  artifactName: "${productName}-${version}-${target}.${ext}"
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true

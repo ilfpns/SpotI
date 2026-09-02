@@ -5,6 +5,7 @@
   "type": "module",
   "main": "dist/main/main.js",
   "scripts": {
+    "start": "electron-vite dev",
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",

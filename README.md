@@ -32,14 +32,22 @@ anywhere; hover it to see what's playing and control playback.
    ```json
    { "clientId": "your-client-id-here" }
    ```
-4. `npm run dev`
+4. `npm start` (or `npm run dev`)
+
+## Building a distributable
+
+`npm run dist` builds both, in `release/`:
+
+- **`SpotI-<version>-nsis.exe`** — a normal Windows installer (Start Menu
+  shortcut, uninstaller).
+- **`SpotI-<version>-portable.exe`** — a single self-contained `.exe`, no
+  install step, no admin rights, just double-click and run.
 
 ## Notes
 
 - Playback control (play/pause/next/previous, seeking, volume) requires
   **Spotify Premium** and an already-active Spotify Connect device (desktop
   app, phone, or web player open somewhere).
-- `npm run dist` builds a Windows installer via electron-builder.
 
 ## Stack
 
