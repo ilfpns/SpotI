@@ -1,0 +1,344 @@
+:root {
+  /* Dark theme (default). --ink is the rgb triplet for translucent
+     "structural" overlays (borders, hover backgrounds) that stay neutral
+     regardless of the user's custom font/accent color. --font-color is the
+     user's chosen accent color, applied to text/icons; its theme-aware
+     default (only used until the user actually customizes it — see
+     renderer/popup/main.ts) lives here too. */
+  --ink: 255, 255, 255;
+  --card-bg: rgba(18, 18, 20, 0.92);
+  --font-color: #f5f5f7;
+  --disc-placeholder: #333333;
+  --shadow: rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="light"] {
+  --ink: 0, 0, 0;
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --font-color: #18181b;
+  --disc-placeholder: #d4d4d8;
+  --shadow: rgba(0, 0, 0, 0.18);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* Outer "stage": only ever animates opacity/transform. The rounded, painted
+   card lives in a separate child element (see .card) so a live transform
+   never has to combine with border-radius+overflow clipping. */
+.popup {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  /* Grow out of / shrink back into the case: anchored at the edge facing the
+     pet (see .anchor-top / .anchor-bottom), starting as a thin sliver offset
+     toward the pet — much narrower than tall — so it reads as being pulled
+     out of the case (a genie-effect-style emerge) rather than just zooming
+     in from a point. The overshoot easing gives it a springy "pop". */
+  transform: scale(0.16, 0.35) translateY(0);
+  transition: opacity 220ms cubic-bezier(0.34, 1.56, 0.64, 1), transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.card {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  background: var(--card-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  color: var(--font-color);
+  border: 1px solid rgba(var(--ink), 0.14);
+  /* Must stay <= padding — a corner radius bigger than the padding lets a
+     square-cornered child (e.g. the progress bar) poke past the curve. */
+  border-radius: 14px;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.popup.fast-exit {
+  transition: opacity 160ms cubic-bezier(0.4, 0, 1, 1), transform 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.popup.anchor-bottom {
+  transform-origin: bottom center;
+}
+
+.popup.anchor-bottom:not(.visible) {
+  transform: scale(0.16, 0.35) translateY(36px);
+}
+
+.popup.anchor-top {
+  transform-origin: top center;
+}
+
+.popup.anchor-top:not(.visible) {
+  transform: scale(0.16, 0.35) translateY(-36px);
+}
+
+.popup.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+.np-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.np-disc {
+  flex-shrink: 0;
+}
+
+.disc-wrap {
+  position: relative;
+  width: 108px;
+  height: 108px;
+}
+
+.disc-wrap .disc {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--disc-placeholder);
+  object-fit: cover;
+  border: 1px solid rgba(var(--ink), 0.15);
+  display: block;
+}
+
+.disc-wrap .disc.spinning {
+  animation: disc-spin 20s linear infinite;
+}
+
+@keyframes disc-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.np-right {
+  flex: 1;
+  /* NOT align-items:flex-end — that switches children to shrink-to-fit
+     instead of filling the column, so a long nowrap title could grow past
+     the column's actual width and visually spill into the disc next to it.
+     Full-width children + text-align:right achieve the same look safely. */
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  gap: 8px;
+  padding-right: 8px;
+}
+
+.meta {
+  overflow: hidden;
+  width: 100%;
+}
+
+.meta .title {
+  position: relative;
+  font-weight: 700;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.meta .title .title-text {
+  display: inline-block;
+}
+
+.meta .title.marquee {
+  text-align: left;
+}
+
+.meta .title.marquee .title-text {
+  animation: title-marquee 6s ease-in-out infinite;
+}
+
+@keyframes title-marquee {
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+  50%,
+  65% {
+    transform: translateX(var(--marquee-distance, 0px));
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.meta .artist {
+  color: color-mix(in srgb, var(--font-color) 55%, transparent);
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.np-controls {
+  margin-top: auto;
+}
+
+.np-controls .controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+.control-btn {
+  background: transparent;
+  border: none;
+  color: color-mix(in srgb, var(--font-color) 85%, transparent);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms ease;
+}
+
+.control-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.control-btn:hover {
+  background: rgba(var(--ink), 0.1);
+}
+
+.control-btn-primary {
+  width: 44px;
+  height: 44px;
+  background: #f5f5f7;
+  color: #1c1c1e;
+}
+
+.control-btn-primary svg {
+  width: 22px;
+  height: 22px;
+}
+
+.control-btn-primary:hover {
+  background: #ffffff;
+}
+
+.np-progress {
+  margin-top: 14px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(var(--ink), 0.18);
+  position: relative;
+  cursor: pointer;
+  /* Bigger than the visual line so it's actually easy to grab. */
+  padding: 7px 0;
+  margin: -7px 0;
+  background-clip: content-box;
+}
+
+.progress-times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.progress-time {
+  font-size: 10px;
+  color: color-mix(in srgb, var(--font-color) 45%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #f5f5f7;
+  border-radius: 2px;
+  width: 0%;
+  pointer-events: none;
+}
+
+/* Hidden until hover/drag, then lifts very slightly so grabbing it reads as
+   a distinct, tactile moment rather than just a color change. */
+.progress-thumb {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffffff;
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 120ms ease, opacity 120ms ease, box-shadow 120ms ease;
+}
+
+.progress-track:hover .progress-thumb {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.progress-track.dragging .progress-thumb {
+  opacity: 1;
+  transform: translate(-50%, -52%) scale(1.15);
+  box-shadow: 0 2px 6px var(--shadow);
+}
+
+.login-button,
+.connect-message button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  background: #1db954;
+  color: #05100a;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.login-button:hover,
+.connect-message button:hover {
+  background: #22e065;
+}
+
+.status-message {
+  color: color-mix(in srgb, var(--font-color) 55%, transparent);
+  font-size: 12px;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}

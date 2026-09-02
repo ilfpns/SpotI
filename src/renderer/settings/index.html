@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>SpotI : Settings</title>
+    <link rel="stylesheet" href="./settings.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <div id="brand-icon" class="brand-icon"></div>
+          <div class="brand-name">SpotI</div>
+        </div>
+        <nav class="nav">
+          <button class="nav-item active" data-page="general">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7zm7.94-3.5a7.97 7.97 0 00-.18-1.6l1.92-1.5a.5.5 0 00.12-.64l-1.8-3.12a.5.5 0 00-.6-.22l-2.26.91a7.9 7.9 0 00-1.38-.8L15.4 1.5a.5.5 0 00-.5-.42h-3.6a.5.5 0 00-.5.42l-.36 2.53c-.5.2-.96.48-1.38.8l-2.26-.91a.5.5 0 00-.6.22L4.2 7.26a.5.5 0 00.12.64l1.92 1.5c-.08.52-.14 1.06-.14 1.6s.06 1.08.14 1.6l-1.92 1.5a.5.5 0 00-.12.64l1.8 3.12c.14.24.42.32.6.22l2.26-.91c.42.32.88.6 1.38.8l.36 2.53c.04.24.26.42.5.42h3.6c.24 0 .46-.18.5-.42l.36-2.53c.5-.2.96-.48 1.38-.8l2.26.91c.24.1.46 0 .6-.22l1.8-3.12a.5.5 0 00-.12-.64l-1.92-1.5c.08-.52.18-1.06.18-1.6z"
+              />
+            </svg>
+            <span data-i18n="nav.general"></span>
+          </button>
+          <button class="nav-item" data-page="theme">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2a10 10 0 100 20c1.1 0 2-.9 2-2 0-.5-.2-.95-.52-1.29-.3-.32-.48-.75-.48-1.21 0-1.1.9-2 2-2h2.36A5.64 5.64 0 0022 10c0-4.42-4.48-8-10-8zM6.5 12a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3-4a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3 4a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"
+              />
+            </svg>
+            <span data-i18n="nav.theme"></span>
+          </button>
+          <button class="nav-item" data-page="spotify">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2a10 10 0 100 20 10 10 0 000-20zm4.59 14.4a.62.62 0 01-.86.21c-2.36-1.44-5.33-1.77-8.83-.97a.63.63 0 01-.28-1.22c3.83-.87 7.12-.5 9.76 1.11.3.18.4.57.21.87zm1.22-2.72a.78.78 0 01-1.07.26c-2.7-1.66-6.82-2.14-10.02-1.17a.78.78 0 11-.45-1.49c3.65-1.1 8.19-.57 11.29 1.33.37.23.48.72.25 1.07zm.1-2.83c-3.24-1.92-8.6-2.1-11.7-1.16a.94.94 0 11-.54-1.79c3.56-1.08 9.47-.87 13.2 1.34a.94.94 0 01-.96 1.61z"
+              />
+            </svg>
+            <span data-i18n="nav.spotify"></span>
+          </button>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <section class="page" data-page="general">
+          <h1 data-i18n="page.general.title"></h1>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.language.title"></div>
+            <div class="card-desc" data-i18n="card.language.desc"></div>
+            <div id="language-select" class="select">
+              <button class="select-trigger" type="button">
+                <span class="select-trigger-label"></span>
+                <svg class="select-chevron" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M7 10l5 5 5-5z" />
+                </svg>
+              </button>
+              <div class="select-menu"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.volume.title"></div>
+            <div class="card-desc" data-i18n="card.volume.desc"></div>
+            <div class="volume-row">
+              <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M3 10v4h4l5 5V5L7 10H3zm13.5 2A4.5 4.5 0 0014 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
+                />
+              </svg>
+              <input id="volume-slider" type="range" min="0" max="100" value="50" />
+              <span id="volume-value" class="volume-value">50%</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="row">
+              <div class="row-text">
+                <div class="row-title" data-i18n="card.autoLaunch.title"></div>
+                <div class="row-desc" data-i18n="card.autoLaunch.desc"></div>
+              </div>
+              <div id="auto-launch-toggle"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.petSize.title"></div>
+            <div class="card-desc" data-i18n="card.petSize.desc"></div>
+            <div id="pet-size-segmented" class="segmented"></div>
+          </div>
+
+          <div class="card">
+            <div class="row">
+              <div class="row-text">
+                <div class="row-title" data-i18n="card.notify.title"></div>
+                <div class="row-desc" data-i18n="card.notify.desc"></div>
+              </div>
+              <div id="notify-toggle"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.pollingSpeed.title"></div>
+            <div class="card-desc" data-i18n="card.pollingSpeed.desc"></div>
+            <div id="polling-speed-segmented" class="segmented"></div>
+          </div>
+
+          <div class="card">
+            <div class="row">
+              <div class="row-text">
+                <div class="row-title" data-i18n="card.reset.title"></div>
+                <div class="row-desc" data-i18n="card.reset.desc"></div>
+              </div>
+              <button id="reset-settings-button" class="danger-button" data-i18n="button.reset"></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" data-page="theme" hidden>
+          <h1 data-i18n="page.theme.title"></h1>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.uiTheme.title"></div>
+            <div class="card-desc" data-i18n="card.uiTheme.desc"></div>
+            <div id="ui-theme-segmented" class="segmented"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.fontColor.title"></div>
+            <div class="card-desc" data-i18n="card.fontColor.desc"></div>
+            <div class="swatch-row">
+              <div id="font-color-presets" class="swatch-list"></div>
+              <label class="color-wheel-button" title="Custom color">
+                <input id="font-color-wheel-input" type="color" />
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.labelColor.title"></div>
+            <div class="card-desc" data-i18n="card.labelColor.desc"></div>
+            <div class="swatch-row">
+              <div id="label-color-presets" class="swatch-list"></div>
+              <label class="color-wheel-button" title="Custom color">
+                <input id="label-color-wheel-input" type="color" />
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.caseColor.title"></div>
+            <div class="card-desc" data-i18n="card.caseColor.desc"></div>
+            <div class="swatch-row">
+              <div id="case-color-presets" class="swatch-list"></div>
+              <label class="color-wheel-button" title="Custom color">
+                <input id="case-color-wheel-input" type="color" />
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="row">
+              <div class="row-text">
+                <div class="row-title" data-i18n="card.border.title"></div>
+                <div class="row-desc" data-i18n="card.border.desc"></div>
+              </div>
+              <div id="border-toggle"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" data-page="spotify" hidden>
+          <h1 data-i18n="page.spotify.title"></h1>
+
+          <div class="card">
+            <div class="row">
+              <div class="row-text">
+                <div class="card-title" data-i18n="card.spotify.title"></div>
+                <div id="spotify-status" class="card-desc">…</div>
+              </div>
+              <button id="spotify-action" class="danger-button" hidden></button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.version.title"></div>
+            <div class="card-desc" data-i18n="app.description"></div>
+            <div class="info-rows">
+              <div class="info-row">
+                <div class="info-row-label" data-i18n="label.version"></div>
+                <div class="info-row-value">v0.1.0</div>
+              </div>
+              <div class="info-row">
+                <div class="info-row-label" data-i18n="label.runtime"></div>
+                <div id="runtime-info" class="info-row-value"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

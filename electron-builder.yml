@@ -1,0 +1,15 @@
+appId: com.example.spoti
+productName: SpotI
+directories:
+  output: release
+  buildResources: assets
+files:
+  - dist/**
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+asar: true
+publish: null
