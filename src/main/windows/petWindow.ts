@@ -71,7 +71,10 @@ export function createPetWindow(): BrowserWindow {
 
   hardenWindow(win);
   win.setAlwaysOnTop(true, "floating");
-  win.setIgnoreMouseEvents(true, { forward: true });
+  // Deliberately NOT click-through: the pet's window is small (48-88px), and
+  // always capturing clicks in its own bounds means nothing underneath it
+  // can ever be clicked by accident through it, at the cost of that small
+  // patch of desktop being briefly unclickable while the pet sits there.
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
   const reassertTopmost = () => {

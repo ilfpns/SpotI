@@ -1,10 +1,7 @@
 import type { NowPlayingState } from "../../shared/types";
 import { t, onLocaleChange } from "../i18nClient";
 import { extractDominantColor } from "./dominantColor";
-
-// One full rotation every 20s (18deg/sec) — matches the original CSS
-// animation's pace.
-const SPIN_DEGREES_PER_SEC = 18;
+import { POPUP_DISC_SPIN_DEG_PER_SEC } from "../../shared/constants";
 
 export class TrackInfo {
   private discEl: HTMLElement;
@@ -13,6 +10,7 @@ export class TrackInfo {
   private spinEnabled = true;
   private followNowPlayingColor = false;
   private colorExtractToken = 0;
+  private spinDegPerSec = POPUP_DISC_SPIN_DEG_PER_SEC.normal;
 
   // Driven manually with rAF (rather than a CSS animation) so the disc can
   // stop exactly wherever it is on pause and pick back up from that same
@@ -42,6 +40,13 @@ export class TrackInfo {
     window.petAPI.onSpinAnimationChanged((enabled) => {
       this.spinEnabled = enabled;
       this.render(this.lastState);
+    });
+
+    window.petAPI.getDiscSpinSpeed().then((speed) => {
+      this.spinDegPerSec = POPUP_DISC_SPIN_DEG_PER_SEC[speed];
+    });
+    window.petAPI.onDiscSpinSpeedChanged((speed) => {
+      this.spinDegPerSec = POPUP_DISC_SPIN_DEG_PER_SEC[speed];
     });
 
     window.petAPI.getFollowNowPlayingColor().then((enabled) => {
@@ -75,7 +80,7 @@ export class TrackInfo {
     if (!this.spinning || !this.discArtEl) return;
     if (this.lastFrameTime) {
       const deltaSec = (now - this.lastFrameTime) / 1000;
-      this.discAngle = (this.discAngle + SPIN_DEGREES_PER_SEC * deltaSec) % 360;
+      this.discAngle = (this.discAngle + this.spinDegPerSec * deltaSec) % 360;
       this.discArtEl.style.transform = `rotate(${this.discAngle}deg)`;
     }
     this.lastFrameTime = now;

@@ -31,3 +31,26 @@ export const POPUP_DISMISS_DELAY_MS: Record<HoverDelay, number> = {
   slow: 150,
 };
 export const DEFAULT_HOVER_DELAY: HoverDelay = "normal";
+
+/** How fast the case slides open/closed. */
+export type CaseSlideSpeed = "slow" | "normal" | "fast";
+export const CASE_SLIDE_DURATION_MS: Record<CaseSlideSpeed, number> = {
+  slow: 550,
+  normal: 380,
+  fast: 220,
+};
+export const DEFAULT_CASE_SLIDE_SPEED: CaseSlideSpeed = "normal";
+
+/** The LP's steady-state rotation rate, in degrees/second — the pet's own small disc and the popup's larger album-art disc keep separate base rates (the popup was always slower, to read as a real turntable) but move together under one setting. */
+export type DiscSpinSpeed = "slow" | "normal" | "fast";
+export const PET_DISC_SPIN_DEG_PER_SEC: Record<DiscSpinSpeed, number> = {
+  slow: 60,
+  normal: 120,
+  fast: 220,
+};
+export const POPUP_DISC_SPIN_DEG_PER_SEC: Record<DiscSpinSpeed, number> = {
+  slow: 9,
+  normal: 18,
+  fast: 33,
+};
+export const DEFAULT_DISC_SPIN_SPEED: DiscSpinSpeed = "normal";

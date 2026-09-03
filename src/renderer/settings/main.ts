@@ -4,6 +4,7 @@ import { initSpotifyPage } from "./pages/SpotifyPage";
 import { initGeneralPage } from "./pages/GeneralPage";
 import { initThemePage } from "./pages/ThemePage";
 import { initCasePage } from "./pages/CasePage";
+import { initAnimationPage } from "./pages/AnimationPage";
 import { initHistoryPage } from "./pages/HistoryPage";
 
 await initI18n();
@@ -86,4 +87,5 @@ initSpotifyPage();
 initGeneralPage();
 initThemePage();
 initCasePage();
+initAnimationPage();
 initHistoryPage();

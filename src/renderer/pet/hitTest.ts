@@ -8,7 +8,6 @@ export function setupInteraction(
   onDragChange: (dragging: boolean) => void,
   onClick?: () => void,
 ) {
-  let isInteractive = false;
   let dragging = false;
   let didMove = false;
   let dragStartScreenX = 0;
@@ -21,9 +20,8 @@ export function setupInteraction(
   // brief window where dragging/didMove aren't set yet, and a pointerup
   // landing inside that window would silently be dropped (neither the
   // click nor the drag path would run). Populated ASAP via a non-blocking
-  // fetch (rather than gating listener registration on it, which would
-  // briefly break hover-based click-through at startup) and kept in sync
-  // with the real window position on every drag move below.
+  // fetch and kept in sync with the real window position on every drag
+  // move below.
   let winX = 0;
   let winY = 0;
   window.petAPI.getPosition().then((pos) => {
@@ -31,34 +29,14 @@ export function setupInteraction(
     winY = pos.y;
   });
 
-  // The pet's sleeve+disc artwork fills almost the entire element, so a
-  // simple bounding-box check is close enough — no pixel sampling needed.
+  // The pet's window is small and never click-through (see petWindow.ts),
+  // so it always captures everything in its own bounds — no hover-based
+  // "wake up the window" step needed before pointer events start working.
   function isOverPet(clientX: number, clientY: number): boolean {
     const rect = el.getBoundingClientRect();
     return clientX >= rect.left && clientX < rect.right && clientY >= rect.top && clientY < rect.bottom;
   }
 
-  function setInteractive(next: boolean) {
-    if (next === isInteractive) return;
-    isInteractive = next;
-    window.petAPI.setIgnoreMouseEvents(!next);
-  }
-
-  // While the window is click-through (setIgnoreMouseEvents + forward:true),
-  // Electron only forwards plain "mousemove" — not Pointer Events — so the
-  // ambient hover check has to use mousemove, not pointermove.
-  window.addEventListener("mousemove", (e) => {
-    if (dragging) return;
-    setInteractive(isOverPet(e.clientX, e.clientY));
-  });
-
-  window.addEventListener("mouseout", () => {
-    if (!dragging) setInteractive(false);
-  });
-
-  // Once hover made the window interactive (ignore=false), it's a normal
-  // window again, so Pointer Events + capture work for reliable dragging
-  // (keeps receiving move/up even if the cursor outruns this tiny window).
   el.addEventListener("pointerdown", (e: Event) => {
     const pe = e as PointerEvent;
     if (pe.button !== 0) return; // only the left button starts a drag

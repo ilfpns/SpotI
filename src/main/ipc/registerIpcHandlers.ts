@@ -6,7 +6,7 @@ import { getPetWindow, resizePetWindow, currentPetSizePx, applyPetOpacity } from
 import { getSpotifyClientId, setSpotifyClientId } from "../spotify/config";
 import { checkForUpdate } from "../updateChecker";
 import { getPopupWindow } from "../windows/popupWindow";
-import { showSettingsWindow } from "../windows/settingsWindow";
+import { showSettingsWindow, getSettingsWindowIfOpen } from "../windows/settingsWindow";
 import { showContextMenuWindow, hideContextMenuWindow } from "../windows/contextMenuWindow";
 import { forceShowPopup } from "../popupController";
 import { pollNow, refreshPollingSpeed, getLastKnownState } from "../spotify/pollingService";
@@ -50,6 +50,10 @@ import {
   setHoverDelay,
   getSpinAnimation,
   setSpinAnimation,
+  getCaseSlideSpeed,
+  setCaseSlideSpeed,
+  getDiscSpinSpeed,
+  setDiscSpinSpeed,
   getMediaKeysEnabled,
   setMediaKeysEnabled,
   getNotificationSound,
@@ -76,7 +80,11 @@ import { getHistorySummaryForYear, getHistoryYears, getBestTrackForDay } from ".
 import {
   DEFAULT_POLLING_SPEED,
   DEFAULT_HOVER_DELAY,
+  DEFAULT_CASE_SLIDE_SPEED,
+  DEFAULT_DISC_SPIN_SPEED,
   type HoverDelay,
+  type CaseSlideSpeed,
+  type DiscSpinSpeed,
 } from "../../shared/constants";
 
 export function registerIpcHandlers() {
@@ -155,10 +163,6 @@ export function registerIpcHandlers() {
     return result;
   });
 
-  ipcMain.on(IpcChannels.setIgnoreMouseEvents, (_e, ignore: boolean) => {
-    getPetWindow().setIgnoreMouseEvents(ignore, { forward: true });
-  });
-
   ipcMain.on(IpcChannels.moveTo, (_e, pos: { x: number; y: number }) => {
     const win = getPetWindow();
     if (win.isDestroyed()) return;
@@ -224,7 +228,7 @@ export function registerIpcHandlers() {
     }
     // Re-render the tray/settings-window icon from the new color too.
     const icon = await getPetIcon();
-    getPetTrayIconSetter()?.(icon);
+    broadcastIconUpdate(icon);
   });
 
   ipcMain.handle(IpcChannels.getCaseColor, () => getCaseColor());
@@ -237,7 +241,7 @@ export function registerIpcHandlers() {
     }
     // Re-render the tray/settings-window icon from the new color too.
     const icon = await getPetIcon();
-    getPetTrayIconSetter()?.(icon);
+    broadcastIconUpdate(icon);
   });
 
   ipcMain.handle(IpcChannels.getFontColor, () => getFontColor());
@@ -283,7 +287,7 @@ export function registerIpcHandlers() {
     }
     // Re-render the tray/settings-window icon from the new setting too.
     const icon = await getPetIcon();
-    getPetTrayIconSetter()?.(icon);
+    broadcastIconUpdate(icon);
   });
 
   ipcMain.handle(IpcChannels.getAutoLaunch, () => getAutoLaunch());
@@ -315,6 +319,22 @@ export function registerIpcHandlers() {
     }
   });
 
+  ipcMain.handle(IpcChannels.getCaseSlideSpeed, () => getCaseSlideSpeed());
+  ipcMain.on(IpcChannels.setCaseSlideSpeed, (_e, speed: CaseSlideSpeed) => {
+    setCaseSlideSpeed(speed);
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(IpcChannels.caseSlideSpeedChanged, speed);
+    }
+  });
+
+  ipcMain.handle(IpcChannels.getDiscSpinSpeed, () => getDiscSpinSpeed());
+  ipcMain.on(IpcChannels.setDiscSpinSpeed, (_e, speed: DiscSpinSpeed) => {
+    setDiscSpinSpeed(speed);
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(IpcChannels.discSpinSpeedChanged, speed);
+    }
+  });
+
   ipcMain.handle(IpcChannels.getMediaKeysEnabled, () => getMediaKeysEnabled());
   ipcMain.on(IpcChannels.setMediaKeysEnabled, (_e, value: boolean) => {
     setMediaKeysEnabled(value);
@@ -335,7 +355,7 @@ export function registerIpcHandlers() {
       win.webContents.send(IpcChannels.borderColorChanged, color);
     }
     const icon = await getPetIcon();
-    getPetTrayIconSetter()?.(icon);
+    broadcastIconUpdate(icon);
   });
 
   ipcMain.handle(IpcChannels.getDiscName, () => getDiscName());
@@ -347,7 +367,7 @@ export function registerIpcHandlers() {
       win.webContents.send(IpcChannels.discNameChanged, sanitized);
     }
     const icon = await getPetIcon();
-    getPetTrayIconSetter()?.(icon);
+    broadcastIconUpdate(icon);
   });
 
   ipcMain.handle(IpcChannels.getFollowNowPlayingColor, () => getFollowNowPlayingColor());
@@ -369,7 +389,7 @@ export function registerIpcHandlers() {
           win.webContents.send(IpcChannels.labelColorChanged, previous);
         }
         const icon = await getPetIcon();
-        getPetTrayIconSetter()?.(icon);
+        broadcastIconUpdate(icon);
       }
     }
 
@@ -386,7 +406,7 @@ export function registerIpcHandlers() {
       win.webContents.send(IpcChannels.caseShapeChanged, shape);
     }
     const icon = await getPetIcon();
-    getPetTrayIconSetter()?.(icon);
+    broadcastIconUpdate(icon);
   });
 
   ipcMain.handle(IpcChannels.getOpacity, () => getOpacity());
@@ -420,6 +440,8 @@ export function registerIpcHandlers() {
     refreshPollingSpeed();
     setHoverDelay(DEFAULT_HOVER_DELAY);
     setSpinAnimation(true);
+    setCaseSlideSpeed(DEFAULT_CASE_SLIDE_SPEED);
+    setDiscSpinSpeed(DEFAULT_DISC_SPIN_SPEED);
     setMediaKeysEnabled(true);
     refreshMediaKeys();
     setNotificationSound(true);
@@ -442,13 +464,15 @@ export function registerIpcHandlers() {
       win.webContents.send(IpcChannels.effectiveUiThemeChanged, getEffectiveUiTheme());
       win.webContents.send(IpcChannels.showBorderChanged, DEFAULT_SHOW_BORDER);
       win.webContents.send(IpcChannels.spinAnimationChanged, true);
+      win.webContents.send(IpcChannels.caseSlideSpeedChanged, DEFAULT_CASE_SLIDE_SPEED);
+      win.webContents.send(IpcChannels.discSpinSpeedChanged, DEFAULT_DISC_SPIN_SPEED);
       win.webContents.send(IpcChannels.borderColorChanged, DEFAULT_BORDER_COLOR);
       win.webContents.send(IpcChannels.discNameChanged, DEFAULT_DISC_NAME);
       win.webContents.send(IpcChannels.followNowPlayingColorChanged, false);
       win.webContents.send(IpcChannels.caseShapeChanged, DEFAULT_CASE_SHAPE);
     }
     const icon = await getPetIcon();
-    getPetTrayIconSetter()?.(icon);
+    broadcastIconUpdate(icon);
     getTrayMenuRebuilder()?.();
   });
 }
@@ -461,8 +485,10 @@ let petTrayIconSetter: ((icon: Electron.NativeImage) => void) | null = null;
 export function registerTrayIconSetter(setter: (icon: Electron.NativeImage) => void) {
   petTrayIconSetter = setter;
 }
-function getPetTrayIconSetter() {
-  return petTrayIconSetter;
+/** Pushes a freshly-rasterized pet icon to every window that displays one. */
+function broadcastIconUpdate(icon: Electron.NativeImage) {
+  petTrayIconSetter?.(icon);
+  getSettingsWindowIfOpen()?.setIcon(icon);
 }
 
 let trayMenuRebuilder: (() => void) | null = null;

@@ -3,14 +3,11 @@ import { IpcChannels } from "../shared/ipcChannels";
 import type { AuthStatus, NowPlayingState, SpotifyResult } from "../shared/types";
 import type { Locale } from "../shared/i18n";
 import type { UiTheme, UiThemePreference, CaseShape } from "../shared/theme";
-import type { PetSize, PollingSpeed, HoverDelay } from "../shared/constants";
+import type { PetSize, PollingSpeed, HoverDelay, CaseSlideSpeed, DiscSpinSpeed } from "../shared/constants";
 import type { BestTrack, HistorySummary } from "../shared/types";
 import type { UpdateCheckResult } from "../main/updateChecker";
 
 const petAPI = {
-  setIgnoreMouseEvents(ignore: boolean) {
-    ipcRenderer.send(IpcChannels.setIgnoreMouseEvents, ignore);
-  },
   moveTo(x: number, y: number) {
     ipcRenderer.send(IpcChannels.moveTo, { x, y });
   },
@@ -175,6 +172,30 @@ const petAPI = {
     const handler = (_e: unknown, value: boolean) => cb(value);
     ipcRenderer.on(IpcChannels.spinAnimationChanged, handler);
     return () => ipcRenderer.removeListener(IpcChannels.spinAnimationChanged, handler);
+  },
+
+  getCaseSlideSpeed(): Promise<CaseSlideSpeed> {
+    return ipcRenderer.invoke(IpcChannels.getCaseSlideSpeed);
+  },
+  setCaseSlideSpeed(speed: CaseSlideSpeed) {
+    ipcRenderer.send(IpcChannels.setCaseSlideSpeed, speed);
+  },
+  onCaseSlideSpeedChanged(cb: (speed: CaseSlideSpeed) => void) {
+    const handler = (_e: unknown, speed: CaseSlideSpeed) => cb(speed);
+    ipcRenderer.on(IpcChannels.caseSlideSpeedChanged, handler);
+    return () => ipcRenderer.removeListener(IpcChannels.caseSlideSpeedChanged, handler);
+  },
+
+  getDiscSpinSpeed(): Promise<DiscSpinSpeed> {
+    return ipcRenderer.invoke(IpcChannels.getDiscSpinSpeed);
+  },
+  setDiscSpinSpeed(speed: DiscSpinSpeed) {
+    ipcRenderer.send(IpcChannels.setDiscSpinSpeed, speed);
+  },
+  onDiscSpinSpeedChanged(cb: (speed: DiscSpinSpeed) => void) {
+    const handler = (_e: unknown, speed: DiscSpinSpeed) => cb(speed);
+    ipcRenderer.on(IpcChannels.discSpinSpeedChanged, handler);
+    return () => ipcRenderer.removeListener(IpcChannels.discSpinSpeedChanged, handler);
   },
 
   getMediaKeysEnabled(): Promise<boolean> {

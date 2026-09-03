@@ -5,9 +5,13 @@ import {
   DEFAULT_PET_SIZE,
   DEFAULT_POLLING_SPEED,
   DEFAULT_HOVER_DELAY,
+  DEFAULT_CASE_SLIDE_SPEED,
+  DEFAULT_DISC_SPIN_SPEED,
   type PetSize,
   type PollingSpeed,
   type HoverDelay,
+  type CaseSlideSpeed,
+  type DiscSpinSpeed,
 } from "../shared/constants";
 
 interface StoredSettings {
@@ -21,6 +25,8 @@ interface StoredSettings {
   startHidden: boolean;
   opacity: number;
   petPosition: { x: number; y: number } | null;
+  caseSlideSpeed: CaseSlideSpeed;
+  discSpinSpeed: DiscSpinSpeed;
 }
 
 const DEFAULTS: StoredSettings = {
@@ -34,6 +40,8 @@ const DEFAULTS: StoredSettings = {
   startHidden: false,
   opacity: 100,
   petPosition: null,
+  caseSlideSpeed: DEFAULT_CASE_SLIDE_SPEED,
+  discSpinSpeed: DEFAULT_DISC_SPIN_SPEED,
 };
 
 function filePath(): string {
@@ -75,6 +83,14 @@ function load(): StoredSettings {
           typeof parsed.petPosition.y === "number"
             ? { x: parsed.petPosition.x, y: parsed.petPosition.y }
             : DEFAULTS.petPosition,
+        caseSlideSpeed:
+          parsed?.caseSlideSpeed === "slow" || parsed?.caseSlideSpeed === "fast" || parsed?.caseSlideSpeed === "normal"
+            ? parsed.caseSlideSpeed
+            : DEFAULTS.caseSlideSpeed,
+        discSpinSpeed:
+          parsed?.discSpinSpeed === "slow" || parsed?.discSpinSpeed === "fast" || parsed?.discSpinSpeed === "normal"
+            ? parsed.discSpinSpeed
+            : DEFAULTS.discSpinSpeed,
       };
       return cached;
     } catch {
@@ -161,6 +177,22 @@ export function setOpacity(percent: number): void {
   // Never let it go fully (or near-)invisible — there'd be no way to find
   // and drag it back short of quitting and editing the settings file.
   load().opacity = Math.max(20, Math.min(100, Math.round(percent)));
+  persist();
+}
+
+export function getCaseSlideSpeed(): CaseSlideSpeed {
+  return load().caseSlideSpeed;
+}
+export function setCaseSlideSpeed(speed: CaseSlideSpeed): void {
+  load().caseSlideSpeed = speed;
+  persist();
+}
+
+export function getDiscSpinSpeed(): DiscSpinSpeed {
+  return load().discSpinSpeed;
+}
+export function setDiscSpinSpeed(speed: DiscSpinSpeed): void {
+  load().discSpinSpeed = speed;
   persist();
 }
 

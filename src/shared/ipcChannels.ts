@@ -1,5 +1,4 @@
 export const IpcChannels = {
-  setIgnoreMouseEvents: "pet:set-ignore-mouse-events",
   moveTo: "pet:move-to",
   getPosition: "pet:get-position",
   savePosition: "pet:save-position",
@@ -96,6 +95,14 @@ export const IpcChannels = {
   getSpinAnimation: "settings:get-spin-animation",
   setSpinAnimation: "settings:set-spin-animation",
   spinAnimationChanged: "settings:spin-animation-changed",
+
+  getCaseSlideSpeed: "settings:get-case-slide-speed",
+  setCaseSlideSpeed: "settings:set-case-slide-speed",
+  caseSlideSpeedChanged: "settings:case-slide-speed-changed",
+
+  getDiscSpinSpeed: "settings:get-disc-spin-speed",
+  setDiscSpinSpeed: "settings:set-disc-spin-speed",
+  discSpinSpeedChanged: "settings:disc-spin-speed-changed",
 
   getMediaKeysEnabled: "settings:get-media-keys-enabled",
   setMediaKeysEnabled: "settings:set-media-keys-enabled",

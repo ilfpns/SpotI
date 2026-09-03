@@ -19,21 +19,29 @@
         height: 100%;
         display: block;
       }
-      /* Click the pet to slide the sleeve (and its printed name) fully off,
-         revealing the whole LP — click again to slide it back on. */
+      /* Click the pet to slide the sleeve (and its printed name) down and
+         to the right, off the LP entirely — click again and it slides back
+         up and to the left, landing right back where it overlaps the LP.
+         will-change promotes this to its own GPU layer so the slide stays
+         smooth instead of janking against the rest of the SVG repainting. */
       #pet-case-group {
-        transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: transform;
+        transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
       }
       #pet-root.revealed #pet-case-group {
-        /* Needs to clear the widest case shape's own right edge (the "cut"
-           shape now reaches x=60) plus its leftmost point, so it's fully
-           off-canvas regardless of which shape is selected. */
-        transform: translateX(-66px);
+        /* +70/+70 clears the widest case shape (the "cut" shape's own
+           leftmost point at x=-3 for classic, x=18 for cut) off the 0-64
+           canvas on the x-axis alone, with the down-right diagonal on top
+           purely for the exit motion. */
+        transform: translate(70px, 70px);
       }
       /* Rotation itself is driven from JS (main.ts), not CSS animation, so
          the disc can freeze exactly where it stopped and pick back up from
-         there instead of resetting to 0deg on every toggle. */
+         there instead of resetting to 0deg on every toggle. will-change
+         keeps the per-frame rotate() on its own layer for the same reason
+         as the case slide above. */
       #pet-disc-group {
+        will-change: transform;
         transform-origin: 39px 24px;
       }
     </style>

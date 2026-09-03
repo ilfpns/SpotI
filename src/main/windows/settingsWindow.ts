@@ -11,6 +11,11 @@ const SETTINGS_HEIGHT = 560;
 
 let settingsWindow: BrowserWindow | null = null;
 
+/** The open settings window, if any — lets other main-process code (e.g. a theme-color change refreshing the window icon) reach it without needing its own registration callback. */
+export function getSettingsWindowIfOpen(): BrowserWindow | null {
+  return settingsWindow && !settingsWindow.isDestroyed() ? settingsWindow : null;
+}
+
 export function showSettingsWindow(): BrowserWindow {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.show();
