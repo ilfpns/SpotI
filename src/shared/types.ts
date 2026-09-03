@@ -23,6 +23,7 @@ export interface NowPlayingState {
   durationMs: number | null;
   shuffleState: boolean;
   repeatState: "off" | "context" | "track";
+  volumePercent: number | null;
 }
 
 export interface AuthStatus {

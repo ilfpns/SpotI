@@ -9,7 +9,7 @@ import { getPopupWindow } from "../windows/popupWindow";
 import { showSettingsWindow } from "../windows/settingsWindow";
 import { showContextMenuWindow, hideContextMenuWindow } from "../windows/contextMenuWindow";
 import { forceShowPopup } from "../popupController";
-import { pollNow, refreshPollingSpeed } from "../spotify/pollingService";
+import { pollNow, refreshPollingSpeed, getLastKnownState } from "../spotify/pollingService";
 import { getLocale, setLocale } from "../localeStore";
 import type { Locale } from "../../shared/i18n";
 import {
@@ -127,7 +127,15 @@ export function registerIpcHandlers() {
     pollNow();
     return result;
   });
-  ipcMain.handle(IpcChannels.getVolume, () => spotifyApiClient.getVolume());
+  // Reuses the last polling tick's already-fetched state (the pet polls
+  // /me/player continuously anyway) instead of a fresh network round trip —
+  // falls back to a live fetch only for the rare case Settings is opened
+  // before the very first poll has landed.
+  ipcMain.handle(IpcChannels.getVolume, () => {
+    const cached = getLastKnownState();
+    if (cached) return { ok: true, data: cached.volumePercent };
+    return spotifyApiClient.getVolume();
+  });
   ipcMain.handle(IpcChannels.setVolume, (_e, percent: number) => spotifyApiClient.setVolume(percent));
   ipcMain.handle(IpcChannels.setShuffle, async (_e, enabled: boolean) => {
     const result = await spotifyApiClient.setShuffle(enabled);

@@ -5,7 +5,10 @@ import { fileURLToPath } from "node:url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const MENU_WIDTH = 168;
-const MENU_HEIGHT = 122;
+// Must fit 3 .menu-item rows + 2 .menu-divider rows + the .menu's own
+// padding — measured at 145px actual content height; verified live via CDP
+// after a previous value (122px) was found to clip the bottom item.
+const MENU_HEIGHT = 148;
 
 let menuWindow: BrowserWindow | null = null;
 

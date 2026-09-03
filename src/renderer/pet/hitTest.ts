@@ -16,6 +16,21 @@ export function setupInteraction(
   let dragStartWinX = 0;
   let dragStartWinY = 0;
 
+  // Tracked locally (instead of re-fetching via IPC on every drag start) so
+  // pointerdown can stay fully synchronous — an `await` there would leave a
+  // brief window where dragging/didMove aren't set yet, and a pointerup
+  // landing inside that window would silently be dropped (neither the
+  // click nor the drag path would run). Populated ASAP via a non-blocking
+  // fetch (rather than gating listener registration on it, which would
+  // briefly break hover-based click-through at startup) and kept in sync
+  // with the real window position on every drag move below.
+  let winX = 0;
+  let winY = 0;
+  window.petAPI.getPosition().then((pos) => {
+    winX = pos.x;
+    winY = pos.y;
+  });
+
   // The pet's sleeve+disc artwork fills almost the entire element, so a
   // simple bounding-box check is close enough — no pixel sampling needed.
   function isOverPet(clientX: number, clientY: number): boolean {
@@ -44,18 +59,17 @@ export function setupInteraction(
   // Once hover made the window interactive (ignore=false), it's a normal
   // window again, so Pointer Events + capture work for reliable dragging
   // (keeps receiving move/up even if the cursor outruns this tiny window).
-  el.addEventListener("pointerdown", async (e: Event) => {
+  el.addEventListener("pointerdown", (e: Event) => {
     const pe = e as PointerEvent;
     if (pe.button !== 0) return; // only the left button starts a drag
     if (!isOverPet(pe.clientX, pe.clientY)) return;
     window.petAPI.forceShowPopup();
-    const start = await window.petAPI.getPosition();
     dragging = true;
     didMove = false;
     dragStartScreenX = pe.screenX;
     dragStartScreenY = pe.screenY;
-    dragStartWinX = start.x;
-    dragStartWinY = start.y;
+    dragStartWinX = winX;
+    dragStartWinY = winY;
     el.setPointerCapture(pe.pointerId);
   });
 
@@ -71,7 +85,9 @@ export function setupInteraction(
       didMove = true;
       onDragChange(true);
     }
-    window.petAPI.moveTo(dragStartWinX + dx, dragStartWinY + dy);
+    winX = dragStartWinX + dx;
+    winY = dragStartWinY + dy;
+    window.petAPI.moveTo(winX, winY);
   });
 
   window.addEventListener("pointerup", (e) => {

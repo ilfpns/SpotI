@@ -84,6 +84,7 @@ export function getNowPlaying(): Promise<SpotifyResult<NowPlayingState | null>> 
       progress_ms: number | null;
       shuffle_state: boolean;
       repeat_state: "off" | "context" | "track";
+      device?: { volume_percent: number | null };
       item: {
         id: string;
         name: string;
@@ -105,6 +106,7 @@ export function getNowPlaying(): Promise<SpotifyResult<NowPlayingState | null>> 
       durationMs: body.item.duration_ms,
       shuffleState: body.shuffle_state,
       repeatState: body.repeat_state,
+      volumePercent: body.device?.volume_percent ?? null,
     };
   });
 }
