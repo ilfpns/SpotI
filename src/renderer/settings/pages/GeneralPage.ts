@@ -61,7 +61,27 @@ export function initGeneralPage() {
   initMediaKeys();
   initNotificationSound();
   initStartHidden();
+  initOpacity();
   initResetButton();
+}
+
+function initOpacity() {
+  const slider = document.getElementById("opacity-slider") as HTMLInputElement;
+  const valueEl = document.getElementById("opacity-value") as HTMLElement;
+  let debounceHandle: ReturnType<typeof setTimeout> | null = null;
+
+  window.petAPI.getOpacity().then((value) => {
+    slider.value = String(value);
+    valueEl.textContent = `${value}%`;
+  });
+
+  slider.addEventListener("input", () => {
+    valueEl.textContent = `${slider.value}%`;
+    if (debounceHandle) clearTimeout(debounceHandle);
+    debounceHandle = setTimeout(() => {
+      window.petAPI.setOpacity(Number(slider.value));
+    }, 80);
+  });
 }
 
 function initMediaKeys() {

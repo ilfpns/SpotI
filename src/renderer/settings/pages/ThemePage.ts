@@ -91,4 +91,12 @@ export async function initThemePage() {
   window.petAPI.getShowBorder().then((value) => {
     createToggle(borderRoot, value, (next) => window.petAPI.setShowBorder(next));
   });
+
+  initColorPicker(
+    "border-color-presets",
+    "border-color-wheel-input",
+    () => window.petAPI.getBorderColor(),
+    (c) => window.petAPI.setBorderColor(c),
+    (cb) => window.petAPI.onBorderColorChanged(cb),
+  );
 }

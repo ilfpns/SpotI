@@ -13,12 +13,13 @@ window.petAPI.onUiThemeChanged((theme) => {
 });
 
 const brandIcon = document.getElementById("brand-icon") as HTMLElement;
-const [initialLabelColor, initialCaseColor, initialShowBorder] = await Promise.all([
+const [initialLabelColor, initialCaseColor, initialShowBorder, initialBorderColor] = await Promise.all([
   window.petAPI.getLabelColor(),
   window.petAPI.getCaseColor(),
   window.petAPI.getShowBorder(),
+  window.petAPI.getBorderColor(),
 ]);
-brandIcon.innerHTML = getPetSvgMarkup(initialLabelColor, initialCaseColor, initialShowBorder);
+brandIcon.innerHTML = getPetSvgMarkup(initialLabelColor, initialCaseColor, initialShowBorder, initialBorderColor);
 window.petAPI.onLabelColorChanged((color) => {
   document.getElementById("pet-label")?.setAttribute("fill", color);
 });
@@ -29,6 +30,10 @@ window.petAPI.onShowBorderChanged((show) => {
   const width = String(show ? BORDER_STROKE_WIDTH : 0);
   document.getElementById("pet-case")?.setAttribute("stroke-width", width);
   document.getElementById("pet-disc-border")?.setAttribute("stroke-width", width);
+});
+window.petAPI.onBorderColorChanged((color) => {
+  document.getElementById("pet-case")?.setAttribute("stroke", color);
+  document.getElementById("pet-disc-border")?.setAttribute("stroke", color);
 });
 
 // Any element with data-i18n="some.key" gets its text filled in here, both

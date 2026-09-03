@@ -1,4 +1,33 @@
 import { t, onLocaleChange } from "../../i18nClient";
+import { SPOTIFY_REDIRECT_URI } from "../../../shared/constants";
+
+function initClientId() {
+  const input = document.getElementById("client-id-input") as HTMLInputElement;
+  const saveButton = document.getElementById("client-id-save-button") as HTMLButtonElement;
+  const statusEl = document.getElementById("client-id-status") as HTMLElement;
+  const redirectEl = document.getElementById("redirect-uri-value") as HTMLElement;
+  const dashboardButton = document.getElementById("open-dashboard-button") as HTMLButtonElement;
+
+  redirectEl.textContent = SPOTIFY_REDIRECT_URI;
+
+  function renderStatus(configured: boolean) {
+    statusEl.textContent = configured ? t("clientId.status.set") : t("clientId.status.unset");
+  }
+
+  window.petAPI.spotify.getClientId().then((clientId) => {
+    if (clientId) input.value = clientId;
+    renderStatus(!!clientId);
+  });
+
+  saveButton.addEventListener("click", async () => {
+    const value = input.value.trim();
+    if (!value) return;
+    await window.petAPI.spotify.setClientId(value);
+    renderStatus(true);
+  });
+
+  dashboardButton.addEventListener("click", () => window.petAPI.spotify.openDashboard());
+}
 
 export function initSpotifyPage() {
   const statusEl = document.getElementById("spotify-status") as HTMLElement;
@@ -27,4 +56,6 @@ export function initSpotifyPage() {
   window.petAPI.spotify.onAuthStatusChanged(() => refresh());
   onLocaleChange(() => refresh());
   refresh();
+
+  initClientId();
 }

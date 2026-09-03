@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>SpotI : Settings</title>
+    <title>Settings</title>
     <link rel="stylesheet" href="./settings.css" />
   </head>
   <body>
@@ -95,6 +95,20 @@
             <div class="card-title" data-i18n="card.petSize.title"></div>
             <div class="card-desc" data-i18n="card.petSize.desc"></div>
             <div id="pet-size-segmented" class="segmented"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.opacity.title"></div>
+            <div class="card-desc" data-i18n="card.opacity.desc"></div>
+            <div class="volume-row">
+              <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M12 2C8 6 4 10.5 4 14.5 4 18.6 7.6 22 12 22s8-3.4 8-7.5C20 10.5 16 6 12 2z"
+                />
+              </svg>
+              <input id="opacity-slider" type="range" min="20" max="100" value="100" />
+              <span id="opacity-value" class="volume-value">100%</span>
+            </div>
           </div>
 
           <div class="card">
@@ -220,6 +234,12 @@
               </div>
               <div id="border-toggle"></div>
             </div>
+            <div class="swatch-row" style="margin-top: 14px">
+              <div id="border-color-presets" class="swatch-list"></div>
+              <label class="color-wheel-button" title="Custom color">
+                <input id="border-color-wheel-input" type="color" />
+              </label>
+            </div>
           </div>
         </section>
 
@@ -260,10 +280,9 @@
           <div class="card history-heatmap-card">
             <div class="history-heatmap-header">
               <div class="card-title" data-i18n="history.heatmap.title"></div>
-              <div id="history-view-segmented" class="segmented"></div>
             </div>
 
-            <div id="history-heatmap-2d-container" class="heatmap-2d-row">
+            <div class="heatmap-2d-row">
               <div class="heatmap-weekdays">
                 <span></span>
                 <span data-i18n="weekday.mon"></span>
@@ -276,10 +295,6 @@
               <div class="heatmap-2d-scroll">
                 <div id="history-heatmap-2d" class="heatmap-2d"></div>
               </div>
-            </div>
-
-            <div id="history-heatmap-3d-container" class="heatmap-3d-wrap" hidden>
-              <canvas id="history-heatmap-3d-canvas"></canvas>
             </div>
 
             <div class="heatmap-legend">
@@ -297,20 +312,25 @@
             <div id="history-best-track-title" class="card-title"></div>
             <div id="history-best-track" class="history-best-track"></div>
           </div>
-
-          <div class="card">
-            <div class="row">
-              <div class="row-text">
-                <div class="row-title" data-i18n="card.clearHistory.title"></div>
-                <div class="row-desc" data-i18n="card.clearHistory.desc"></div>
-              </div>
-              <button id="clear-history-button" class="danger-button" data-i18n="button.clear"></button>
-            </div>
-          </div>
         </section>
 
         <section class="page" data-page="spotify" hidden>
           <h1 data-i18n="page.spotify.title"></h1>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.clientId.title"></div>
+            <div class="card-desc" data-i18n="card.clientId.desc"></div>
+            <div class="row" style="gap: 8px">
+              <input id="client-id-input" type="text" class="text-input" placeholder="Client ID" />
+              <button id="client-id-save-button" class="secondary-button" data-i18n="button.save"></button>
+            </div>
+            <div id="client-id-status" class="card-desc" style="margin-top: 8px; margin-bottom: 0"></div>
+            <div class="card-desc" style="margin-top: 12px; margin-bottom: 6px">
+              <span data-i18n="card.clientId.redirectLabel"></span>:
+              <code id="redirect-uri-value" class="code-value"></code>
+            </div>
+            <button id="open-dashboard-button" class="secondary-button" data-i18n="button.openDashboard"></button>
+          </div>
 
           <div class="card">
             <div class="row">

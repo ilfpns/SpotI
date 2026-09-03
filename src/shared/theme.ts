@@ -23,3 +23,6 @@ export const DEFAULT_UI_THEME: UiTheme = "dark";
 
 /** Whether the case and LP each show their thin outline stroke. */
 export const DEFAULT_SHOW_BORDER = true;
+
+/** The case's and LP's outline stroke color, matching the original design. */
+export const DEFAULT_BORDER_COLOR = "#d8d6d0";

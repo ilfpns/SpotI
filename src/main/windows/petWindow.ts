@@ -2,7 +2,7 @@ import { BrowserWindow, screen } from "electron";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { PET_SIZE_PX } from "../../shared/constants";
-import { getPetSize, getStartHidden } from "../appSettingsStore";
+import { getPetSize, getStartHidden, getOpacity } from "../appSettingsStore";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -35,6 +35,7 @@ export function createPetWindow(): BrowserWindow {
     width: size,
     height: size,
     show: !getStartHidden(),
+    opacity: getOpacity() / 100,
     transparent: true,
     backgroundColor: "#00000000",
     frame: false,
@@ -88,4 +89,11 @@ export function resizePetWindow(sizePx: number): void {
   if (win.isDestroyed()) return;
   const [x, y] = win.getPosition();
   win.setBounds({ x, y, width: sizePx, height: sizePx });
+}
+
+/** Re-read the opacity setting and apply it to the live pet window. */
+export function applyPetOpacity(): void {
+  const win = getPetWindow();
+  if (win.isDestroyed()) return;
+  win.setOpacity(getOpacity() / 100);
 }

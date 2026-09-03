@@ -196,13 +196,38 @@ const petAPI = {
   getBestTrackForDay(date: string): Promise<BestTrack | null> {
     return ipcRenderer.invoke(IpcChannels.getBestTrackForDay, date);
   },
-  clearHistory(): Promise<void> {
-    return ipcRenderer.invoke(IpcChannels.clearHistory);
+
+  getBorderColor(): Promise<string> {
+    return ipcRenderer.invoke(IpcChannels.getBorderColor);
+  },
+  setBorderColor(color: string) {
+    ipcRenderer.send(IpcChannels.setBorderColor, color);
+  },
+  onBorderColorChanged(cb: (color: string) => void) {
+    const handler = (_e: unknown, color: string) => cb(color);
+    ipcRenderer.on(IpcChannels.borderColorChanged, handler);
+    return () => ipcRenderer.removeListener(IpcChannels.borderColorChanged, handler);
+  },
+
+  getOpacity(): Promise<number> {
+    return ipcRenderer.invoke(IpcChannels.getOpacity);
+  },
+  setOpacity(percent: number) {
+    ipcRenderer.send(IpcChannels.setOpacity, percent);
   },
 
   spotify: {
     login(): Promise<{ ok: boolean; message?: string }> {
       return ipcRenderer.invoke(IpcChannels.authStart);
+    },
+    getClientId(): Promise<string | null> {
+      return ipcRenderer.invoke(IpcChannels.getSpotifyClientId);
+    },
+    setClientId(clientId: string): Promise<void> {
+      return ipcRenderer.invoke(IpcChannels.setSpotifyClientId, clientId);
+    },
+    openDashboard() {
+      ipcRenderer.send(IpcChannels.openSpotifyDashboard);
     },
     logout(): Promise<void> {
       return ipcRenderer.invoke(IpcChannels.logout);

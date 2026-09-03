@@ -1,8 +1,9 @@
-import { ipcMain, app, BrowserWindow } from "electron";
+import { ipcMain, app, shell, BrowserWindow } from "electron";
 import { IpcChannels } from "../../shared/ipcChannels";
 import * as authService from "../spotify/authService";
 import * as spotifyApiClient from "../spotify/spotifyApiClient";
-import { getPetWindow, resizePetWindow, currentPetSizePx } from "../windows/petWindow";
+import { getPetWindow, resizePetWindow, currentPetSizePx, applyPetOpacity } from "../windows/petWindow";
+import { getSpotifyClientId, setSpotifyClientId } from "../spotify/config";
 import { getPopupWindow } from "../windows/popupWindow";
 import { showSettingsWindow } from "../windows/settingsWindow";
 import { showContextMenuWindow, hideContextMenuWindow } from "../windows/contextMenuWindow";
@@ -21,6 +22,8 @@ import {
   setUiTheme,
   getShowBorder,
   setShowBorder,
+  getBorderColor,
+  setBorderColor,
 } from "../themeStore";
 import { invalidatePetIconCache, getPetIcon } from "../petIcon";
 import { PET_SIZE_PX, type PetSize, type PollingSpeed } from "../../shared/constants";
@@ -43,11 +46,13 @@ import {
   setNotificationSound,
   getStartHidden,
   setStartHidden,
+  getOpacity,
+  setOpacity,
 } from "../appSettingsStore";
 import { refreshMediaKeys } from "../mediaKeys";
-import { DEFAULT_UI_THEME, DEFAULT_SHOW_BORDER } from "../../shared/theme";
+import { DEFAULT_UI_THEME, DEFAULT_SHOW_BORDER, DEFAULT_BORDER_COLOR } from "../../shared/theme";
 import type { UiTheme } from "../../shared/theme";
-import { getHistorySummary, getBestTrackForDay, clearHistory } from "../listeningHistoryStore";
+import { getHistorySummary, getBestTrackForDay } from "../listeningHistoryStore";
 import {
   HISTORY_DAYS_WINDOW,
   DEFAULT_POLLING_SPEED,
@@ -63,6 +68,14 @@ export function registerIpcHandlers() {
   });
 
   ipcMain.handle(IpcChannels.getAuthStatus, () => authService.getAuthStatus());
+
+  ipcMain.handle(IpcChannels.getSpotifyClientId, () => getSpotifyClientId());
+  ipcMain.handle(IpcChannels.setSpotifyClientId, (_e, clientId: string) => setSpotifyClientId(clientId));
+  // Fixed destination, never renderer-supplied — a compromised renderer
+  // can't use this to open an arbitrary URL.
+  ipcMain.on(IpcChannels.openSpotifyDashboard, () => {
+    shell.openExternal("https://developer.spotify.com/dashboard");
+  });
 
   ipcMain.handle(IpcChannels.logout, () => {
     authService.logout();
@@ -242,9 +255,25 @@ export function registerIpcHandlers() {
   ipcMain.handle(IpcChannels.getStartHidden, () => getStartHidden());
   ipcMain.on(IpcChannels.setStartHidden, (_e, value: boolean) => setStartHidden(value));
 
+  ipcMain.handle(IpcChannels.getBorderColor, () => getBorderColor());
+  ipcMain.on(IpcChannels.setBorderColor, async (_e, color: string) => {
+    setBorderColor(color);
+    invalidatePetIconCache();
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(IpcChannels.borderColorChanged, color);
+    }
+    const icon = await getPetIcon();
+    getPetTrayIconSetter()?.(icon);
+  });
+
+  ipcMain.handle(IpcChannels.getOpacity, () => getOpacity());
+  ipcMain.on(IpcChannels.setOpacity, (_e, percent: number) => {
+    setOpacity(percent);
+    applyPetOpacity();
+  });
+
   ipcMain.handle(IpcChannels.getHistorySummary, () => getHistorySummary(HISTORY_DAYS_WINDOW));
   ipcMain.handle(IpcChannels.getBestTrackForDay, (_e, date: string) => getBestTrackForDay(date));
-  ipcMain.handle(IpcChannels.clearHistory, () => clearHistory());
 
   // The reset target values are the ones explicitly requested for this
   // button, not necessarily each setting's fresh-install default (e.g. the
@@ -273,6 +302,9 @@ export function registerIpcHandlers() {
     refreshMediaKeys();
     setNotificationSound(true);
     setStartHidden(false);
+    setBorderColor(DEFAULT_BORDER_COLOR);
+    setOpacity(100);
+    applyPetOpacity();
 
     invalidatePetIconCache();
     for (const win of BrowserWindow.getAllWindows()) {
@@ -283,6 +315,7 @@ export function registerIpcHandlers() {
       win.webContents.send(IpcChannels.uiThemeChanged, DEFAULT_UI_THEME);
       win.webContents.send(IpcChannels.showBorderChanged, DEFAULT_SHOW_BORDER);
       win.webContents.send(IpcChannels.spinAnimationChanged, true);
+      win.webContents.send(IpcChannels.borderColorChanged, DEFAULT_BORDER_COLOR);
     }
     const icon = await getPetIcon();
     getPetTrayIconSetter()?.(icon);

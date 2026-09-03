@@ -18,18 +18,32 @@ const CURSOR_POLL_MS = 60;
 // and so a brief hover isn't missed between two poll samples.
 const HOVER_MARGIN_PX = 6;
 
-let dismissTimer: ReturnType<typeof setTimeout> | null = null;
-let hideTimer: ReturnType<typeof setTimeout> | null = null;
+// Explicit state machine — the single source of truth for what the popup is
+// doing, instead of inferring it from win.isVisible() + "is a timer
+// currently pending". That mixed approach had a real bug: while "closing"
+// the window stays OS-visible until the fade-out timer finishes, so a
+// naive "if already visible, do nothing" check on re-entry would skip
+// resending popupAppear — the window would still be technically visible,
+// but its renderer-side CSS would be stuck mid-exit-animation, so it never
+// visually came back. Rapid or even just mistimed hover in/out could land
+// exactly in that window and get the popup stuck invisible-looking until
+// the close sequence finally finished on its own.
+type PopupPhase = "hidden" | "visible" | "grace" | "closing";
+let phase: PopupPhase = "hidden";
+
+let graceTimer: ReturnType<typeof setTimeout> | null = null;
+let closeTimer: ReturnType<typeof setTimeout> | null = null;
 let onVisibilityChange: ((visible: boolean) => void) | null = null;
+let currentSide: "above" | "below" = "above";
 
 function clearTimers() {
-  if (dismissTimer) {
-    clearTimeout(dismissTimer);
-    dismissTimer = null;
+  if (graceTimer) {
+    clearTimeout(graceTimer);
+    graceTimer = null;
   }
-  if (hideTimer) {
-    clearTimeout(hideTimer);
-    hideTimer = null;
+  if (closeTimer) {
+    clearTimeout(closeTimer);
+    closeTimer = null;
   }
 }
 
@@ -60,38 +74,45 @@ function isCursorOverPetOrPopup(): boolean {
   return false;
 }
 
-let currentSide: "above" | "below" = "above";
-
-function showPopup() {
+/** Enter (or re-enter) the visible state — always resends popupAppear, regardless of the window's prior phase. */
+function doShow() {
   clearTimers();
   const win = getPopupWindow();
-  if (win.isVisible()) return;
   const petBounds = getPetWindow().getBounds();
   currentSide = positionPopupNearPet(petBounds);
-  win.showInactive();
-  // A setBounds() applied to a not-yet-shown window can be dropped by Windows
-  // once the compositor surface is actually realized on show() — reapplying
-  // right after show() guarantees the position actually sticks every time.
-  currentSide = positionPopupNearPet(petBounds);
+  if (!win.isVisible()) {
+    win.showInactive();
+    // A setBounds() applied to a not-yet-shown window can be dropped by
+    // Windows once the compositor surface is actually realized on show() —
+    // reapplying right after show() guarantees the position actually
+    // sticks every time.
+    currentSide = positionPopupNearPet(petBounds);
+  }
   win.webContents.send(IpcChannels.popupAppear, currentSide);
   onVisibilityChange?.(true);
+  phase = "visible";
 }
 
-function scheduleHide() {
-  if (dismissTimer || hideTimer) return;
-  dismissTimer = setTimeout(() => {
-    dismissTimer = null;
-    const win = getPopupWindow();
-    if (!win.isVisible()) return;
-    win.webContents.send(IpcChannels.popupDisappear, currentSide);
-    hideTimer = setTimeout(() => {
-      hideTimer = null;
-      if (!isCursorOverPetOrPopup()) {
-        win.hide();
-        onVisibilityChange?.(false);
-      }
-    }, FADE_OUT_MS);
+/** Cursor just left — wait a short grace period (so a quick pass over the pet/popup gap doesn't flicker) before starting to close. */
+function beginGrace() {
+  phase = "grace";
+  graceTimer = setTimeout(() => {
+    graceTimer = null;
+    beginClosing();
   }, POPUP_DISMISS_DELAY_MS[getHoverDelay()]);
+}
+
+/** Grace period elapsed and the cursor is still away — play the exit animation, then actually hide the window. */
+function beginClosing() {
+  phase = "closing";
+  const win = getPopupWindow();
+  win.webContents.send(IpcChannels.popupDisappear, currentSide);
+  closeTimer = setTimeout(() => {
+    closeTimer = null;
+    win.hide();
+    onVisibilityChange?.(false);
+    phase = "hidden";
+  }, FADE_OUT_MS);
 }
 
 /**
@@ -104,12 +125,14 @@ function scheduleHide() {
  */
 export function startPopupCursorWatcher() {
   setInterval(() => {
-    if (isCursorOverPetOrPopup()) {
-      clearTimers();
-      showPopup();
-    } else {
-      scheduleHide();
+    const wanted = isCursorOverPetOrPopup();
+    if (wanted) {
+      if (phase !== "visible") doShow();
+    } else if (phase === "visible") {
+      beginGrace();
     }
+    // phase === "grace" or "closing": a close sequence is already in
+    // flight and the cursor is still away — nothing to do, let it finish.
   }, CURSOR_POLL_MS);
 }
 
@@ -119,6 +142,5 @@ export function onPopupVisibilityChange(cb: (visible: boolean) => void) {
 
 /** Force the popup open immediately, e.g. on an explicit click on the pet. */
 export function forceShowPopup() {
-  clearTimers();
-  showPopup();
+  doShow();
 }

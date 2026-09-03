@@ -19,6 +19,7 @@ interface StoredSettings {
   mediaKeysEnabled: boolean;
   notificationSound: boolean;
   startHidden: boolean;
+  opacity: number;
 }
 
 const DEFAULTS: StoredSettings = {
@@ -30,6 +31,7 @@ const DEFAULTS: StoredSettings = {
   mediaKeysEnabled: true,
   notificationSound: true,
   startHidden: false,
+  opacity: 100,
 };
 
 function filePath(): string {
@@ -61,6 +63,10 @@ function load(): StoredSettings {
         notificationSound:
           typeof parsed?.notificationSound === "boolean" ? parsed.notificationSound : DEFAULTS.notificationSound,
         startHidden: typeof parsed?.startHidden === "boolean" ? parsed.startHidden : DEFAULTS.startHidden,
+        opacity:
+          typeof parsed?.opacity === "number" && parsed.opacity >= 20 && parsed.opacity <= 100
+            ? parsed.opacity
+            : DEFAULTS.opacity,
       };
       return cached;
     } catch {
@@ -137,6 +143,16 @@ export function getStartHidden(): boolean {
 }
 export function setStartHidden(value: boolean): void {
   load().startHidden = value;
+  persist();
+}
+
+export function getOpacity(): number {
+  return load().opacity;
+}
+export function setOpacity(percent: number): void {
+  // Never let it go fully (or near-)invisible — there'd be no way to find
+  // and drag it back short of quitting and editing the settings file.
+  load().opacity = Math.max(20, Math.min(100, Math.round(percent)));
   persist();
 }
 

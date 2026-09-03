@@ -20,7 +20,7 @@ export function showSettingsWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: SETTINGS_WIDTH,
     height: SETTINGS_HEIGHT,
-    title: "SpotI : Settings",
+    title: "Settings",
     backgroundColor: "#18181b",
     autoHideMenuBar: true,
     webPreferences: {

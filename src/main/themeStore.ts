@@ -7,6 +7,7 @@ import {
   DEFAULT_FONT_COLOR,
   DEFAULT_UI_THEME,
   DEFAULT_SHOW_BORDER,
+  DEFAULT_BORDER_COLOR,
   type UiTheme,
 } from "../shared/theme";
 
@@ -16,6 +17,7 @@ interface StoredTheme {
   fontColor: string;
   uiTheme: UiTheme;
   showBorder: boolean;
+  borderColor: string;
 }
 
 function filePath(): string {
@@ -45,6 +47,7 @@ function load(): StoredTheme {
         fontColor: isHexColor(parsed?.fontColor) ? parsed.fontColor : DEFAULT_FONT_COLOR,
         uiTheme: isUiTheme(parsed?.uiTheme) ? parsed.uiTheme : DEFAULT_UI_THEME,
         showBorder: typeof parsed?.showBorder === "boolean" ? parsed.showBorder : DEFAULT_SHOW_BORDER,
+        borderColor: isHexColor(parsed?.borderColor) ? parsed.borderColor : DEFAULT_BORDER_COLOR,
       };
       return cached;
     } catch {
@@ -58,6 +61,7 @@ function load(): StoredTheme {
     fontColor: DEFAULT_FONT_COLOR,
     uiTheme: DEFAULT_UI_THEME,
     showBorder: DEFAULT_SHOW_BORDER,
+    borderColor: DEFAULT_BORDER_COLOR,
   };
   return cached;
 }
@@ -107,5 +111,14 @@ export function getShowBorder(): boolean {
 }
 export function setShowBorder(value: boolean): void {
   load().showBorder = value;
+  persist();
+}
+
+export function getBorderColor(): string {
+  return load().borderColor;
+}
+export function setBorderColor(color: string): void {
+  if (!isHexColor(color)) return;
+  load().borderColor = color;
   persist();
 }

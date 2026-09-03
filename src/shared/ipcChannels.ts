@@ -12,6 +12,9 @@ export const IpcChannels = {
   authStatusChanged: "spotify:auth-status-changed",
   getAuthStatus: "spotify:get-auth-status",
   logout: "spotify:logout",
+  getSpotifyClientId: "spotify:get-client-id",
+  setSpotifyClientId: "spotify:set-client-id",
+  openSpotifyDashboard: "spotify:open-dashboard",
 
   nowPlayingChanged: "spotify:now-playing-changed",
   play: "spotify:play",
@@ -48,6 +51,13 @@ export const IpcChannels = {
   setShowBorder: "theme:set-show-border",
   showBorderChanged: "theme:show-border-changed",
 
+  getBorderColor: "theme:get-border-color",
+  setBorderColor: "theme:set-border-color",
+  borderColorChanged: "theme:border-color-changed",
+
+  getOpacity: "settings:get-opacity",
+  setOpacity: "settings:set-opacity",
+
   getAutoLaunch: "settings:get-auto-launch",
   setAutoLaunch: "settings:set-auto-launch",
 
@@ -78,7 +88,6 @@ export const IpcChannels = {
 
   getHistorySummary: "history:get-summary",
   getBestTrackForDay: "history:get-best-track-for-day",
-  clearHistory: "history:clear",
 
   resetSettings: "settings:reset",
 } as const;
