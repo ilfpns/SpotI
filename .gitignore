@@ -4,4 +4,6 @@ release/
 *.log
 .env
 spotify-token.enc
+# No longer read by the app (config now lives in userData), but keep
+# ignoring it in case a stale copy exists from before that change.
 spotify.config.json

@@ -5,6 +5,8 @@ import { getSpotifyClientId } from "./config";
 import { saveRefreshToken, loadRefreshToken, clearRefreshToken } from "./tokenStore";
 import { SPOTIFY_REDIRECT_URI, SPOTIFY_SCOPES } from "../../shared/constants";
 import type { AuthStatus } from "../../shared/types";
+import { getLocale } from "../localeStore";
+import { translate } from "../../shared/i18n";
 
 const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 const AUTHORIZE_ENDPOINT = "https://accounts.spotify.com/authorize";
@@ -41,12 +43,7 @@ export async function tryRestoreSession(): Promise<boolean> {
 export async function login(): Promise<{ ok: boolean; message?: string }> {
   const clientId = getSpotifyClientId();
   if (!clientId) {
-    return {
-      ok: false,
-      message:
-        "No Spotify Client ID configured. Copy spotify.config.json.example to " +
-        "spotify.config.json and fill in your Client ID from developer.spotify.com/dashboard.",
-    };
+    return { ok: false, message: translate(getLocale(), "error.no_client_id") };
   }
 
   const { codeVerifier, codeChallenge } = generatePkcePair();

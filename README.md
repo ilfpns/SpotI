@@ -1,5 +1,7 @@
 # SpotI
 
+[한국어](README.ko.md) · [中文](README.zh.md) · [日本語](README.ja.md)
+
 A tiny always-on-top desktop companion — styled as an LP half-slid out of its
 case — that sits on your desktop and controls Spotify playback. Drag it
 anywhere; hover it to see what's playing and control playback.
@@ -9,30 +11,35 @@ anywhere; hover it to see what's playing and control playback.
 - Draggable desktop pet, click-through everywhere except its own artwork
 - Hover popup: album art, track/artist, play/pause/next/prev, seekable
   progress bar, volume
-- Spotify login via PKCE (your own Client ID — no shared secret)
+- Spotify login via PKCE (your own Client ID — no shared secret), configured
+  right in the app
+- Global media-key support (play/pause/next/previous)
 - Settings window
-  - **General** — language, volume, launch at startup, pet size, track-change
-    notifications, sync speed, reset to defaults
+  - **General** — language, volume, opacity, launch at startup, pet size,
+    track-change notifications (with sound), sync speed, popup dismiss
+    delay, disc spin animation, media keys, start hidden, reset to defaults
   - **Theme** — light/dark mode, font color, LP color, case color, border
-    toggle
-  - **Spotify** — connection status, version info
-- Listening-history heatmap (daily totals, streaks, best track per day)
+    on/off + border color
+  - **History** — a full-year listening heatmap, streaks, and the
+    most-played track per day
+  - **Spotify** — Client ID setup, connection status, version info
 - Korean, English, Chinese, and Japanese UI
 
 ## Setup
 
 1. `npm install`
-2. Create your own Spotify app at https://developer.spotify.com/dashboard,
+2. `npm start` (or `npm run dev`) to launch SpotI
+3. Create your own Spotify app at https://developer.spotify.com/dashboard,
    click **Create app**, and set the **Redirect URI** to exactly:
    ```
    http://127.0.0.1:8765/callback
    ```
-3. Copy `spotify.config.json.example` to `spotify.config.json` and paste in
-   your app's **Client ID**:
-   ```json
-   { "clientId": "your-client-id-here" }
-   ```
-4. `npm start` (or `npm run dev`)
+4. In SpotI, right-click the pet → **Settings** → **Spotify**, paste your
+   app's **Client ID**, and click **Save**.
+5. Hover the pet and click **Connect Spotify**.
+
+That's it — no config files to hand-edit. (Advanced/dev users can instead
+set a `SPOTIFY_CLIENT_ID` environment variable, which takes priority.)
 
 ## Building a distributable
 
@@ -43,6 +50,9 @@ anywhere; hover it to see what's playing and control playback.
 - **`SpotI-<version>-portable.exe`** — a single self-contained `.exe`, no
   install step, no admin rights, just double-click and run.
 
+Each person who runs the built app configures their own Client ID from
+Settings (step 4 above) — nothing Spotify-related is baked into the build.
+
 ## Notes
 
 - Playback control (play/pause/next/previous, seeking, volume) requires
@@ -52,4 +62,4 @@ anywhere; hover it to see what's playing and control playback.
 ## Stack
 
 Electron + TypeScript, built with `electron-vite`. No UI framework — vanilla
-DOM.
+DOM. Tests with `vitest` (`npm test`).
