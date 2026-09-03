@@ -125,6 +125,22 @@ function setSpinning(next: boolean) {
 
 let revealed = false;
 
+/** Updates the case/spin visuals to match `next`, but only if it's actually a change — called both from clicks and from real playback-state updates, so it must stay idempotent. */
+function applyRevealed(next: boolean) {
+  if (next === revealed) return;
+  revealed = next;
+  setCaseRevealed(revealed);
+  setSpinning(revealed);
+}
+
+// The case's open/closed state mirrors actual playback, not just clicks —
+// if the track gets paused/resumed from anywhere else (the popup, a media
+// key, another device entirely), the pet's case follows along on the next
+// poll instead of drifting out of sync with what's really playing.
+window.petAPI.spotify.onNowPlayingChanged((state) => {
+  applyRevealed(!!state?.isPlaying);
+});
+
 setupInteraction(
   petSvg,
   () => {
@@ -133,9 +149,14 @@ setupInteraction(
   () => {
     // A plain click (no drag) slides the sleeve fully off (revealing the
     // whole LP, and starting it spinning) — click again to slide it back on
-    // (freezing the disc where it is).
-    revealed = !revealed;
-    setCaseRevealed(revealed);
-    setSpinning(revealed);
+    // (freezing the disc where it is). Optimistically flips the visual
+    // state immediately and fires the matching play/pause call; the
+    // onNowPlayingChanged listener above reconciles it with whatever
+    // actually happened on the next poll (same optimistic-update pattern
+    // the popup's own controls use). Fire-and-forget — with nothing
+    // connected/no active device this just silently no-ops, same as every
+    // other playback control in that situation.
+    applyRevealed(!revealed);
+    void (revealed ? window.petAPI.spotify.play() : window.petAPI.spotify.pause());
   },
 );

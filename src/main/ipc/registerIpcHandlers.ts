@@ -9,7 +9,7 @@ import { getPopupWindow } from "../windows/popupWindow";
 import { showSettingsWindow, getSettingsWindowIfOpen } from "../windows/settingsWindow";
 import { showContextMenuWindow, hideContextMenuWindow } from "../windows/contextMenuWindow";
 import { forceShowPopup } from "../popupController";
-import { pollNow, refreshPollingSpeed, getLastKnownState } from "../spotify/pollingService";
+import { pollNow, refreshPollingSpeed, getLastKnownState, broadcastOptimisticPlayState } from "../spotify/pollingService";
 import { getLocale, setLocale } from "../localeStore";
 import type { Locale } from "../../shared/i18n";
 import {
@@ -119,11 +119,16 @@ export function registerIpcHandlers() {
   // instead of waiting for the next scheduled poll tick.
   ipcMain.handle(IpcChannels.play, async () => {
     const result = await spotifyApiClient.play();
+    // isPlaying is now known for certain — every window (pet included, so
+    // its case reveal follows along) hears about it immediately instead of
+    // waiting on pollNow()'s own network round trip to Spotify.
+    if (result.ok) broadcastOptimisticPlayState(true);
     pollNow();
     return result;
   });
   ipcMain.handle(IpcChannels.pause, async () => {
     const result = await spotifyApiClient.pause();
+    if (result.ok) broadcastOptimisticPlayState(false);
     pollNow();
     return result;
   });

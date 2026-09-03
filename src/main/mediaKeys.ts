@@ -1,6 +1,6 @@
 import { globalShortcut } from "electron";
 import * as spotifyApiClient from "./spotify/spotifyApiClient";
-import { pollNow, getLastKnownState } from "./spotify/pollingService";
+import { pollNow, getLastKnownState, broadcastOptimisticPlayState } from "./spotify/pollingService";
 import { getMediaKeysEnabled } from "./appSettingsStore";
 
 const KEYS = ["MediaPlayPause", "MediaNextTrack", "MediaPreviousTrack"] as const;
@@ -17,11 +17,12 @@ async function togglePlayPause() {
     const result = await spotifyApiClient.getNowPlaying();
     isPlaying = result.ok && !!result.data?.isPlaying;
   }
-  await (isPlaying ? spotifyApiClient.pause() : spotifyApiClient.play());
+  const result = await (isPlaying ? spotifyApiClient.pause() : spotifyApiClient.play());
+  if (result.ok) broadcastOptimisticPlayState(!isPlaying);
   pollNow();
 }
 
-/** Binds the hardware media keys system-wide (works even when SpotI isn't focused — it never is, being click-through). */
+/** Binds the hardware media keys system-wide (works even when SpotI isn't the OS-focused window — the pet window never takes focus, per petWindow.ts's `focusable: false`). */
 export function registerMediaKeys(): void {
   if (!getMediaKeysEnabled()) return;
   if (globalShortcut.isRegistered("MediaPlayPause")) return;

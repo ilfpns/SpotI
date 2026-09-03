@@ -1,5 +1,4 @@
-import type { BrowserWindow } from "electron";
-import { Notification, nativeImage } from "electron";
+import { BrowserWindow, Notification, nativeImage } from "electron";
 import { getNowPlaying } from "./spotifyApiClient";
 import { IpcChannels } from "../../shared/ipcChannels";
 import { POLL_INTERVAL_IDLE_MS, POLLING_INTERVAL_ACTIVE_MS } from "../../shared/constants";
@@ -14,8 +13,14 @@ let currentIntervalMs = POLL_INTERVAL_IDLE_MS;
 let popupIsActive = false;
 let lastState: NowPlayingState | null = null;
 let hasPolledOnce = false;
-let getWindow: (() => BrowserWindow) | null = null;
 let lastTickAt = Date.now();
+
+/** Every window cares about now-playing state (the popup shows it, the pet's case reveal/spin now mirrors isPlaying) — not just the popup. */
+function broadcastNowPlaying(state: NowPlayingState | null) {
+  for (const win of BrowserWindow.getAllWindows()) {
+    win.webContents.send(IpcChannels.nowPlayingChanged, state);
+  }
+}
 // Never attribute more than this much listening time to a single tick, so a
 // long gap (system sleep, a slow/idle interval, a missed tick) can't get
 // counted as if the whole gap was spent listening.
@@ -71,7 +76,7 @@ async function tick() {
     if (!statesEqual(lastState, nextState)) {
       const trackChanged = !!nextState?.trackId && nextState.trackId !== lastState?.trackId;
       lastState = nextState;
-      getWindow?.()?.webContents.send(IpcChannels.nowPlayingChanged, nextState);
+      broadcastNowPlaying(nextState);
       if (trackChanged && hasPolledOnce && nextState?.isPlaying) {
         void notifyTrackChanged(nextState);
       }
@@ -85,10 +90,25 @@ function applyInterval() {
   currentIntervalMs = popupIsActive ? POLLING_INTERVAL_ACTIVE_MS[getPollingSpeed()] : POLL_INTERVAL_IDLE_MS;
 }
 
-export function startPolling(windowGetter: () => BrowserWindow) {
-  getWindow = windowGetter;
+export function startPolling() {
   if (timer) return;
   timer = setTimeout(tick, 0);
+}
+
+/**
+ * Broadcasts the known new isPlaying state immediately after a play/pause
+ * call succeeds, instead of every window waiting on pollNow()'s full
+ * network round trip (getNowPlaying() -> Spotify) just to find out
+ * something they already know the answer to. pollNow() still runs
+ * right after this for everything else that action might have changed
+ * (progress, in rare cases the track itself) — this just removes the
+ * lag for the one thing that's already certain.
+ */
+export function broadcastOptimisticPlayState(isPlaying: boolean): void {
+  if (!lastState) return;
+  const optimistic = { ...lastState, isPlaying };
+  lastState = optimistic;
+  broadcastNowPlaying(optimistic);
 }
 
 /** Re-poll immediately (e.g. right after a play/pause/skip action) instead of waiting for the next tick. */

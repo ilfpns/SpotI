@@ -55,7 +55,7 @@ function runApp() {
     // Register IPC handlers before anything async (tray icon rasterization
     // included) so a renderer can never invoke a channel before it exists.
     registerIpcHandlers();
-    startPolling(getPopupWindow);
+    startPolling();
 
     onPopupVisibilityChange((visible) => setPollingActive(visible));
     startPopupCursorWatcher();
