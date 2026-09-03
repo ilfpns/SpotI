@@ -271,6 +271,27 @@ body {
   background: rgba(var(--ink), 0.1);
 }
 
+/* Spotify-branded action (save Client ID, open dashboard) — green like the
+   Spotify tab itself, instead of the neutral secondary-button treatment. */
+.spotify-button {
+  padding: 8px 14px;
+  border: 1px solid rgba(29, 185, 84, 0.4);
+  border-radius: 8px;
+  background: rgba(29, 185, 84, 0.14);
+  color: #1db954;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.spotify-button:hover {
+  background: #1db954;
+  border-color: #1db954;
+  color: #05100a;
+}
+
 /* Destructive action (disconnect) — red hover instead of the neutral one. */
 .danger-button {
   padding: 8px 14px;
