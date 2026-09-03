@@ -84,10 +84,6 @@ navItems.forEach((nav) => {
   nav.addEventListener("click", () => switchToPage(nav.dataset.page!));
 });
 
-// Sent when the popup's heart button opens Settings directly to a tab
-// (e.g. Favorite) rather than the user clicking a nav item themselves.
-window.petAPI.onNavigateSettingsTab(switchToPage);
-
 // One init call per settings page.
 initSpotifyPage();
 initGeneralPage();

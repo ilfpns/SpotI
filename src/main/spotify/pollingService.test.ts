@@ -32,7 +32,7 @@ vi.mock("../appSettingsStore", () => ({
 }));
 vi.mock("../localeStore", () => ({ getLocale: () => "en" as const }));
 vi.mock("../../shared/i18n", () => ({ translate: () => "" }));
-vi.mock("../listeningHistoryStore", () => ({ recordListening: () => {}, recordTrackStart: () => {} }));
+vi.mock("../listeningHistoryStore", () => ({ recordListening: () => {}, recordTrackStart: (..._args: unknown[]) => {} }));
 
 function track(isPlaying: boolean): NowPlayingState {
   return {

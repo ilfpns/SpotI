@@ -13,6 +13,8 @@ interface TrackBucket {
   artist: string | null;
   albumArtUrl: string | null;
   ms: number;
+  /** How many times this specific track started playing this day — optional on read since days recorded before this field existed won't have it. */
+  playCount?: number;
 }
 
 interface DayBucket {
@@ -122,14 +124,33 @@ export function recordListening(
 }
 
 /** Call once per genuine track change while playing (not on every poll tick) — see pollingService's own trackChanged detection, which this reuses. */
-export function recordTrackStart(): void {
+export function recordTrackStart(trackId: string, title: string | null, artist: string | null, albumArtUrl: string | null): void {
   const store = load();
   const key = dateKey(new Date());
   const isNewDay = !store.days[key];
   const day = (store.days[key] ??= { totalMs: 0, playCount: 0, tracks: {} });
   if (isNewDay) pruneOldDays(store);
   day.playCount = (day.playCount ?? 0) + 1;
+  const track = (day.tracks[trackId] ??= { title, artist, albumArtUrl, ms: 0, playCount: 0 });
+  track.playCount = (track.playCount ?? 0) + 1;
+  track.title = title;
+  track.artist = artist;
+  track.albumArtUrl = albumArtUrl;
   scheduleFlush();
+}
+
+/** Lifetime totals for one track, summed across every stored day — used by the Favorite list to show how much a saved track has actually been listened to. */
+export function getTrackStats(trackId: string): { totalMs: number; playCount: number } {
+  const store = load();
+  let totalMs = 0;
+  let playCount = 0;
+  for (const day of Object.values(store.days)) {
+    const track = day.tracks[trackId];
+    if (!track) continue;
+    totalMs += track.ms;
+    playCount += track.playCount ?? 0;
+  }
+  return { totalMs, playCount };
 }
 
 // Jan 1 through Dec 31 of the given year — or through today, for the

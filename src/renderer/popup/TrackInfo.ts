@@ -45,7 +45,6 @@ export class TrackInfo {
       const target = (e.target as HTMLElement).closest<HTMLElement>('[data-action="favorite"]');
       if (!target || !this.lastState?.trackId) return;
       void this.toggleFavorite(this.lastState.trackId);
-      window.petAPI.openSettingsFavorite();
     });
 
     this.render(null);

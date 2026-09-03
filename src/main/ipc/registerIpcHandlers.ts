@@ -76,7 +76,7 @@ import {
   DEFAULT_CASE_SHAPE,
 } from "../../shared/theme";
 import type { UiThemePreference, CaseShape } from "../../shared/theme";
-import { getHistorySummaryForYear, getHistoryYears, getBestTrackForDay } from "../listeningHistoryStore";
+import { getHistorySummaryForYear, getHistoryYears, getBestTrackForDay, getTrackStats } from "../listeningHistoryStore";
 import {
   DEFAULT_POLLING_SPEED,
   DEFAULT_HOVER_DELAY,
@@ -174,17 +174,6 @@ export function registerIpcHandlers() {
   ipcMain.handle(IpcChannels.getSavedTracks, (_e, limit: number, offset: number) =>
     spotifyApiClient.getSavedTracks(limit, offset),
   );
-
-  // Opens (or focuses) Settings and tells it to switch to the Favorite tab —
-  // sent immediately if the window's already loaded, or once did-finish-load
-  // fires for a freshly created one, so the renderer's nav is always ready
-  // to receive it.
-  ipcMain.on(IpcChannels.openSettingsFavorite, () => {
-    const win = showSettingsWindow();
-    const send = () => win.webContents.send(IpcChannels.navigateSettingsTab, "favorite");
-    if (win.webContents.isLoading()) win.webContents.once("did-finish-load", send);
-    else send();
-  });
 
   ipcMain.on(IpcChannels.moveTo, (_e, pos: { x: number; y: number }) => {
     const win = getPetWindow();
@@ -442,6 +431,7 @@ export function registerIpcHandlers() {
   ipcMain.handle(IpcChannels.getHistorySummaryForYear, (_e, year: number) => getHistorySummaryForYear(year));
   ipcMain.handle(IpcChannels.getHistoryYears, () => getHistoryYears());
   ipcMain.handle(IpcChannels.getBestTrackForDay, (_e, date: string) => getBestTrackForDay(date));
+  ipcMain.handle(IpcChannels.getTrackStats, (_e, trackId: string) => getTrackStats(trackId));
 
   // Colors and border color reset to the app's own shipped defaults
   // (shared/theme.ts) — locale and pet size reset to the explicitly

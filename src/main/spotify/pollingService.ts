@@ -136,7 +136,7 @@ async function tick() {
     if (changed) {
       broadcastNowPlaying(nextState);
       if (trackChanged && hasPolledOnce && nextState?.isPlaying) {
-        recordTrackStart();
+        recordTrackStart(nextState.trackId!, nextState.title, nextState.artist, nextState.albumArtUrl);
         void notifyTrackChanged(nextState);
       }
     }

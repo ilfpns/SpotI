@@ -239,6 +239,9 @@ const petAPI = {
   getBestTrackForDay(date: string): Promise<BestTrack | null> {
     return ipcRenderer.invoke(IpcChannels.getBestTrackForDay, date);
   },
+  getTrackStats(trackId: string): Promise<{ totalMs: number; playCount: number }> {
+    return ipcRenderer.invoke(IpcChannels.getTrackStats, trackId);
+  },
 
   getBorderColor(): Promise<string> {
     return ipcRenderer.invoke(IpcChannels.getBorderColor);
@@ -363,14 +366,6 @@ const petAPI = {
     getSavedTracks(limit: number, offset: number): Promise<SpotifyResult<SavedTracksPage>> {
       return ipcRenderer.invoke(IpcChannels.getSavedTracks, limit, offset);
     },
-  },
-  openSettingsFavorite() {
-    ipcRenderer.send(IpcChannels.openSettingsFavorite);
-  },
-  onNavigateSettingsTab(cb: (tab: string) => void) {
-    const handler = (_e: unknown, tab: string) => cb(tab);
-    ipcRenderer.on(IpcChannels.navigateSettingsTab, handler);
-    return () => ipcRenderer.removeListener(IpcChannels.navigateSettingsTab, handler);
   },
 };
 

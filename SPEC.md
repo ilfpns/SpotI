@@ -109,11 +109,11 @@ hidden` 상태를 명시적으로 관리(60ms 간격으로 커서 위치 폴링)
   때마다 새로 만들지 않고 그대로 재사용해 회전 상태가 끊기지 않음.
 - Spotify 미연결 시 연결 버튼 표시.
 - 곡명 오른쪽에 하트 버튼 — Spotify의 실제 Liked Songs에 저장/제거
-  (`PUT`/`DELETE /me/tracks`). 클릭 시 낙관적으로 하트부터 채우고,
+  (`PUT`/`DELETE /me/tracks`). 클릭 시 낙관적으로 하트부터 빨갛게 채우고,
   실패하면(그리고 그 사이 곡이 안 바뀌었으면) 되돌림. 트랙이 바뀔
   때마다 한 번씩만 `GET /me/tracks/contains`로 저장 여부를 새로 확인.
-  클릭하면 설정 창을 즐겨찾기 탭으로 바로 열어줌
-  (`settings:open-favorite` → `settings:navigate-tab` IPC).
+  설정 창을 열거나 하지는 않음 — 즐겨찾기 목록은 설정 → 즐겨찾기 탭에서
+  따로 확인(4.7절).
   **Liked Songs API는 `user-library-modify`/`user-library-read` 스코프가
   필요** — 이 기능을 추가하며 `SPOTIFY_SCOPES`에 새로 넣었으므로,
   이전에 이미 로그인해 둔 계정은 Settings → Spotify에서 로그아웃 후
@@ -252,7 +252,10 @@ Canvas API만 사용). 트랙이 바뀔 때마다(재생 중 상태 변화가 �
 - **재생 횟수**: 청취 시간(ms 누적)과는 별개 지표 — 트랙이 실제로
   바뀌면서 재생 중인 순간(`pollingService.tick()`의 기존 `trackChanged`
   감지를 그대로 재사용, 앱을 막 시작한 직후의 "첫 폴링"은 제외)마다
-  하루치 카운터를 1씩 올림(`listeningHistoryStore.recordTrackStart()`).
+  하루치 전체 카운터와 그 트랙 자신의 카운터를 함께 1씩 올림
+  (`listeningHistoryStore.recordTrackStart(trackId, ...)`) — 전자는
+  이 페이지의 "재생 횟수" 통계에, 후자는 4.7절 즐겨찾기 목록의 트랙별
+  통계(`getTrackStats(trackId)`)에 쓰임.
 
 ### 4.6 Spotify
 
@@ -269,12 +272,15 @@ Canvas API만 사용). 트랙이 바뀔 때마다(재생 중 상태 변화가 �
 ### 4.7 즐겨찾기 (Favorite)
 
 - 팝업의 하트 버튼(3.2절)으로 저장한 Spotify Liked Songs 목록을 보여줌
-  — 로컬에 별도로 저장하지 않고 매번 `GET /me/tracks`를 페이지 단위(20개)로
-  불러와 항상 Spotify 쪽 실제 상태를 그대로 반영.
-  - 각 행: 앨범 아트, 곡명/아티스트, 제거 버튼(`DELETE /me/tracks`,
-    낙관적으로 목록에서 먼저 지우고 실패하면 전체 재로딩으로 복구).
+  — 목록 자체는 로컬에 별도로 저장하지 않고 매번 `GET /me/tracks`를
+  페이지 단위(20개)로 불러와 항상 Spotify 쪽 실제 상태를 그대로 반영.
+  - 각 행: 앨범 아트, 곡명/아티스트, **재생 횟수·총 청취 시간**(로컬
+    `listeningHistoryStore.getTrackStats(trackId)` — 저장된 모든
+    날짜의 기록을 그 트랙 기준으로 합산, Spotify가 아니라 이 앱이
+    직접 재생을 관찰한 기록에서 나오는 값이라 실제로 SpotI로 들은
+    적 없는 곡은 0으로 표시됨), 제거 버튼(`DELETE /me/tracks`, 낙관적
+    으로 목록에서 먼저 지우고 실패하면 전체 재로딩으로 복구).
   - "더 보기" 버튼으로 다음 페이지 로드.
-  - 팝업 하트 클릭으로 이 탭이 열리면 최신 목록으로 다시 로드.
 
 ### 4.8 설정 초기화
 

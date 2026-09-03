@@ -861,6 +861,13 @@ body {
   white-space: nowrap;
 }
 
+.favorite-row-stats {
+  font-size: 11px;
+  color: rgba(var(--ink), 0.45);
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
 .favorite-remove-button {
   background: transparent;
   border: none;

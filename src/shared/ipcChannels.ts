@@ -116,6 +116,7 @@ export const IpcChannels = {
   getHistorySummaryForYear: "history:get-summary-for-year",
   getHistoryYears: "history:get-years",
   getBestTrackForDay: "history:get-best-track-for-day",
+  getTrackStats: "history:get-track-stats",
 
   resetSettings: "settings:reset",
 
@@ -123,7 +124,4 @@ export const IpcChannels = {
   saveTrack: "spotify:save-track",
   removeSavedTrack: "spotify:remove-saved-track",
   getSavedTracks: "spotify:get-saved-tracks",
-
-  openSettingsFavorite: "settings:open-favorite",
-  navigateSettingsTab: "settings:navigate-tab",
 } as const;
