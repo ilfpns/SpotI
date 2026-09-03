@@ -76,7 +76,7 @@ export function getPetSvgMarkup(
        with the case rather than staying behind on the disc. -->
   <g id="pet-case-group">
     <rect id="pet-case" x="3" y="3" width="36" height="42" rx="2" fill="${caseColor}" stroke="${borderColor}" stroke-width="${borderWidth}" />
-    <text id="pet-disc-name" x="21" y="26" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="5.5" font-weight="700" letter-spacing="0.3" fill="${contrastTextColor(caseColor)}">${escapeXml(discName)}</text>
+    <text id="pet-disc-name" x="7" y="11" text-anchor="start" font-family="Arial, sans-serif" font-size="5.5" font-weight="700" letter-spacing="0.3" fill="${contrastTextColor(caseColor)}">${escapeXml(discName)}</text>
   </g>
 </svg>
 `.trim();

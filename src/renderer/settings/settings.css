@@ -292,23 +292,25 @@ body {
   color: #05100a;
 }
 
-/* Destructive action (disconnect) — red hover instead of the neutral one. */
+/* Destructive action (disconnect, reset) — same soft-tint-to-solid
+   treatment as .spotify-button, just red instead of Spotify green. */
 .danger-button {
   padding: 8px 14px;
-  border: 1px solid rgba(var(--ink), 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.4);
   border-radius: 8px;
-  background: rgba(var(--ink), 0.06);
-  color: var(--text);
+  background: rgba(239, 68, 68, 0.14);
+  color: #ef4444;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   flex-shrink: 0;
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
 .danger-button:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.4);
-  color: #f87171;
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
 }
 
 /* Dropdown ("top-down") select for language, instead of a flat list. */
