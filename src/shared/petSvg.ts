@@ -1,4 +1,29 @@
-import { DEFAULT_LABEL_COLOR, DEFAULT_CASE_COLOR, DEFAULT_SHOW_BORDER, DEFAULT_BORDER_COLOR, DEFAULT_DISC_NAME } from "./theme";
+import {
+  DEFAULT_LABEL_COLOR,
+  DEFAULT_CASE_COLOR,
+  DEFAULT_SHOW_BORDER,
+  DEFAULT_BORDER_COLOR,
+  DEFAULT_DISC_NAME,
+  DEFAULT_CASE_SHAPE,
+  type CaseShape,
+} from "./theme";
+
+/**
+ * "classic": a plain square sleeve (42x42, matching its own height). Its
+ * right edge stays at x=39 — the disc's own horizontal center — so exactly
+ * half the disc is still covered, same as the original (non-square)
+ * design; the extra width needed to make it a true square is added on the
+ * left instead, bleeding slightly past the icon's own left edge.
+ *
+ * "cut": a square exactly matching the disc's own bounding box (also
+ * 42x42, centered on it) with the triangle D-O-C notched out — D and C are
+ * its top-right/bottom-right corners, O is its own center — so the case
+ * and LP fully coincide except through that one triangular window.
+ */
+export function casePathFor(shape: CaseShape): string {
+  if (shape === "classic") return "M-1,3 L37,3 A2,2 0 0 1 39,5 L39,43 A2,2 0 0 1 37,45 L-1,45 A2,2 0 0 1 -3,43 L-3,5 A2,2 0 0 1 -1,3 Z";
+  return "M20,3 L60,3 L39,24 L60,45 L20,45 A2,2 0 0 1 18,43 L18,5 A2,2 0 0 1 20,3 Z";
+}
 
 /** Stroke width used for both the case's and the LP's outline when borders are shown. */
 export const BORDER_STROKE_WIDTH = 1;
@@ -34,6 +59,7 @@ export function getPetSvgMarkup(
   showBorder: boolean = DEFAULT_SHOW_BORDER,
   borderColor: string = DEFAULT_BORDER_COLOR,
   discName: string = DEFAULT_DISC_NAME,
+  caseShape: CaseShape = DEFAULT_CASE_SHAPE,
 ): string {
   const borderWidth = showBorder ? BORDER_STROKE_WIDTH : 0;
   return `
@@ -75,8 +101,22 @@ export function getPetSvgMarkup(
        grouped with its own printed name so the text slides off together
        with the case rather than staying behind on the disc. -->
   <g id="pet-case-group">
-    <rect id="pet-case" x="3" y="3" width="36" height="42" rx="2" fill="${caseColor}" stroke="${borderColor}" stroke-width="${borderWidth}" />
-    <text id="pet-disc-name" x="7" y="11" text-anchor="start" font-family="Arial, sans-serif" font-size="5.5" font-weight="700" letter-spacing="0.3" fill="${contrastTextColor(caseColor)}">${escapeXml(discName)}</text>
+    <!-- The "cut" shape slices the case's top-right corner off along one
+         big diagonal, like a torn/cut album sleeve, so the LP behind it
+         shows through that whole cut rather than a small notch; "classic"
+         is the original plain rounded rectangle. -->
+    <path
+      id="pet-case"
+      d="${casePathFor(caseShape)}"
+      fill="${caseColor}"
+      stroke="${borderColor}"
+      stroke-width="${borderWidth}"
+      stroke-linejoin="round"
+    />
+    <!-- Positioned to stay on solid case material for both shapes — inside
+         "cut"'s retained top wedge (above the D-O diagonal) as well as
+         "classic"'s plain square. -->
+    <text id="pet-disc-name" x="30" y="8" text-anchor="start" font-family="Arial, sans-serif" font-size="5.5" font-weight="700" letter-spacing="0.3" fill="${contrastTextColor(caseColor)}">${escapeXml(discName)}</text>
   </g>
 </svg>
 `.trim();

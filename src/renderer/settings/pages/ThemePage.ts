@@ -18,6 +18,11 @@ export async function initThemePage() {
     (cb) => window.petAPI.onLabelColorChanged(cb),
   );
 
+  const followRoot = document.getElementById("follow-now-playing-toggle") as HTMLElement;
+  window.petAPI.getFollowNowPlayingColor().then((value) => {
+    createToggle(followRoot, value, (next) => window.petAPI.setFollowNowPlayingColor(next));
+  });
+
   const uiThemeRoot = document.getElementById("ui-theme-segmented") as HTMLElement;
   const current = await window.petAPI.getUiTheme();
   createSegmented<UiThemePreference>(

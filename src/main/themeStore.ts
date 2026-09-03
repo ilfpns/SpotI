@@ -10,8 +10,10 @@ import {
   DEFAULT_BORDER_COLOR,
   DEFAULT_DISC_NAME,
   sanitizeDiscName,
+  DEFAULT_CASE_SHAPE,
   type UiTheme,
   type UiThemePreference,
+  type CaseShape,
 } from "../shared/theme";
 
 interface StoredTheme {
@@ -22,6 +24,8 @@ interface StoredTheme {
   showBorder: boolean;
   borderColor: string;
   discName: string;
+  followNowPlayingColor: boolean;
+  caseShape: CaseShape;
 }
 
 function filePath(): string {
@@ -36,6 +40,10 @@ function isHexColor(value: unknown): value is string {
 
 function isUiTheme(value: unknown): value is UiThemePreference {
   return value === "light" || value === "dark" || value === "system";
+}
+
+function isCaseShape(value: unknown): value is CaseShape {
+  return value === "classic" || value === "cut";
 }
 
 function load(): StoredTheme {
@@ -53,6 +61,9 @@ function load(): StoredTheme {
         showBorder: typeof parsed?.showBorder === "boolean" ? parsed.showBorder : DEFAULT_SHOW_BORDER,
         borderColor: isHexColor(parsed?.borderColor) ? parsed.borderColor : DEFAULT_BORDER_COLOR,
         discName: typeof parsed?.discName === "string" ? sanitizeDiscName(parsed.discName) : DEFAULT_DISC_NAME,
+        followNowPlayingColor:
+          typeof parsed?.followNowPlayingColor === "boolean" ? parsed.followNowPlayingColor : false,
+        caseShape: isCaseShape(parsed?.caseShape) ? parsed.caseShape : DEFAULT_CASE_SHAPE,
       };
       return cached;
     } catch {
@@ -68,6 +79,8 @@ function load(): StoredTheme {
     showBorder: DEFAULT_SHOW_BORDER,
     borderColor: DEFAULT_BORDER_COLOR,
     discName: DEFAULT_DISC_NAME,
+    followNowPlayingColor: false,
+    caseShape: DEFAULT_CASE_SHAPE,
   };
   return cached;
 }
@@ -141,5 +154,22 @@ export function getDiscName(): string {
 }
 export function setDiscName(name: string): void {
   load().discName = sanitizeDiscName(name);
+  persist();
+}
+
+export function getFollowNowPlayingColor(): boolean {
+  return load().followNowPlayingColor;
+}
+export function setFollowNowPlayingColor(value: boolean): void {
+  load().followNowPlayingColor = value;
+  persist();
+}
+
+export function getCaseShape(): CaseShape {
+  return load().caseShape;
+}
+export function setCaseShape(shape: CaseShape): void {
+  if (!isCaseShape(shape)) return;
+  load().caseShape = shape;
   persist();
 }

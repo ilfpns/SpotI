@@ -28,6 +28,10 @@ import {
   setBorderColor,
   getDiscName,
   setDiscName,
+  getFollowNowPlayingColor,
+  setFollowNowPlayingColor,
+  getCaseShape,
+  setCaseShape,
 } from "../themeStore";
 import { invalidatePetIconCache, getPetIcon } from "../petIcon";
 import { PET_SIZE_PX, type PetSize, type PollingSpeed } from "../../shared/constants";
@@ -63,8 +67,9 @@ import {
   DEFAULT_CASE_COLOR,
   DEFAULT_FONT_COLOR,
   DEFAULT_DISC_NAME,
+  DEFAULT_CASE_SHAPE,
 } from "../../shared/theme";
-import type { UiThemePreference } from "../../shared/theme";
+import type { UiThemePreference, CaseShape } from "../../shared/theme";
 import { getHistorySummaryForYear, getHistoryYears, getBestTrackForDay } from "../listeningHistoryStore";
 import {
   DEFAULT_POLLING_SPEED,
@@ -343,6 +348,25 @@ export function registerIpcHandlers() {
     getPetTrayIconSetter()?.(icon);
   });
 
+  ipcMain.handle(IpcChannels.getFollowNowPlayingColor, () => getFollowNowPlayingColor());
+  ipcMain.on(IpcChannels.setFollowNowPlayingColor, (_e, value: boolean) => {
+    setFollowNowPlayingColor(value);
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(IpcChannels.followNowPlayingColorChanged, value);
+    }
+  });
+
+  ipcMain.handle(IpcChannels.getCaseShape, () => getCaseShape());
+  ipcMain.on(IpcChannels.setCaseShape, async (_e, shape: CaseShape) => {
+    setCaseShape(shape);
+    invalidatePetIconCache();
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(IpcChannels.caseShapeChanged, shape);
+    }
+    const icon = await getPetIcon();
+    getPetTrayIconSetter()?.(icon);
+  });
+
   ipcMain.handle(IpcChannels.getOpacity, () => getOpacity());
   ipcMain.on(IpcChannels.setOpacity, (_e, percent: number) => {
     setOpacity(percent);
@@ -380,6 +404,8 @@ export function registerIpcHandlers() {
     setStartHidden(false);
     setBorderColor(DEFAULT_BORDER_COLOR);
     setDiscName(DEFAULT_DISC_NAME);
+    setFollowNowPlayingColor(false);
+    setCaseShape(DEFAULT_CASE_SHAPE);
     setOpacity(100);
     applyPetOpacity();
 
@@ -394,6 +420,9 @@ export function registerIpcHandlers() {
       win.webContents.send(IpcChannels.showBorderChanged, DEFAULT_SHOW_BORDER);
       win.webContents.send(IpcChannels.spinAnimationChanged, true);
       win.webContents.send(IpcChannels.borderColorChanged, DEFAULT_BORDER_COLOR);
+      win.webContents.send(IpcChannels.discNameChanged, DEFAULT_DISC_NAME);
+      win.webContents.send(IpcChannels.followNowPlayingColorChanged, false);
+      win.webContents.send(IpcChannels.caseShapeChanged, DEFAULT_CASE_SHAPE);
     }
     const icon = await getPetIcon();
     getPetTrayIconSetter()?.(icon);

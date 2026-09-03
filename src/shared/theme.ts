@@ -39,3 +39,7 @@ const DISC_NAME_ALLOWED_CHARS = /[^A-Za-z0-9 !?.,'"&#@_-]/g;
 export function sanitizeDiscName(value: string): string {
   return value.replace(DISC_NAME_ALLOWED_CHARS, "").slice(0, DISC_NAME_MAX_LENGTH);
 }
+
+/** "classic" is the original plain square sleeve; "cut" is a square exactly matching the LP's own bounds with the triangle between its top-right/bottom-right corners and its center notched out, so the LP shows through only there. */
+export type CaseShape = "classic" | "cut";
+export const DEFAULT_CASE_SHAPE: CaseShape = "cut";

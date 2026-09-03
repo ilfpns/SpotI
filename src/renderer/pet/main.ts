@@ -1,21 +1,24 @@
 import { setupInteraction } from "./hitTest";
-import { getPetSvgMarkup, BORDER_STROKE_WIDTH, contrastTextColor } from "../../shared/petSvg";
+import { getPetSvgMarkup, BORDER_STROKE_WIDTH, contrastTextColor, casePathFor } from "../../shared/petSvg";
 
 const petRoot = document.getElementById("pet-root") as HTMLElement;
 
-const [initialLabelColor, initialCaseColor, initialShowBorder, initialBorderColor, initialDiscName] = await Promise.all([
-  window.petAPI.getLabelColor(),
-  window.petAPI.getCaseColor(),
-  window.petAPI.getShowBorder(),
-  window.petAPI.getBorderColor(),
-  window.petAPI.getDiscName(),
-]);
+const [initialLabelColor, initialCaseColor, initialShowBorder, initialBorderColor, initialDiscName, initialCaseShape] =
+  await Promise.all([
+    window.petAPI.getLabelColor(),
+    window.petAPI.getCaseColor(),
+    window.petAPI.getShowBorder(),
+    window.petAPI.getBorderColor(),
+    window.petAPI.getDiscName(),
+    window.petAPI.getCaseShape(),
+  ]);
 petRoot.innerHTML = getPetSvgMarkup(
   initialLabelColor,
   initialCaseColor,
   initialShowBorder,
   initialBorderColor,
   initialDiscName,
+  initialCaseShape,
 );
 const petSvg = petRoot.querySelector("svg") as Element;
 
@@ -40,6 +43,9 @@ window.petAPI.onBorderColorChanged((color) => {
 window.petAPI.onDiscNameChanged((name) => {
   const el = document.getElementById("pet-disc-name");
   if (el) el.textContent = name;
+});
+window.petAPI.onCaseShapeChanged((shape) => {
+  document.getElementById("pet-case")?.setAttribute("d", casePathFor(shape));
 });
 
 // Driven manually with rAF (rather than a CSS animation) so the disc can

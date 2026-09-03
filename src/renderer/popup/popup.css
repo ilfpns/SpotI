@@ -129,18 +129,9 @@ body {
   display: block;
 }
 
-.disc-wrap .disc.spinning {
-  animation: disc-spin 20s linear infinite;
-}
-
-@keyframes disc-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+/* Rotation itself is driven from JS (TrackInfo.ts), not a CSS animation, so
+   the disc can freeze exactly where it stopped on pause and pick back up
+   from there on play instead of resetting to 0deg every toggle. */
 
 .np-right {
   flex: 1;

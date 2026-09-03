@@ -1,4 +1,4 @@
-import { getPetSvgMarkup, BORDER_STROKE_WIDTH, contrastTextColor } from "../../shared/petSvg";
+import { getPetSvgMarkup, BORDER_STROKE_WIDTH, contrastTextColor, casePathFor } from "../../shared/petSvg";
 import { initI18n, t, onLocaleChange } from "../i18nClient";
 import { initSpotifyPage } from "./pages/SpotifyPage";
 import { initGeneralPage } from "./pages/GeneralPage";
@@ -14,19 +14,22 @@ window.petAPI.onEffectiveUiThemeChanged((theme) => {
 });
 
 const brandIcon = document.getElementById("brand-icon") as HTMLElement;
-const [initialLabelColor, initialCaseColor, initialShowBorder, initialBorderColor, initialDiscName] = await Promise.all([
-  window.petAPI.getLabelColor(),
-  window.petAPI.getCaseColor(),
-  window.petAPI.getShowBorder(),
-  window.petAPI.getBorderColor(),
-  window.petAPI.getDiscName(),
-]);
+const [initialLabelColor, initialCaseColor, initialShowBorder, initialBorderColor, initialDiscName, initialCaseShape] =
+  await Promise.all([
+    window.petAPI.getLabelColor(),
+    window.petAPI.getCaseColor(),
+    window.petAPI.getShowBorder(),
+    window.petAPI.getBorderColor(),
+    window.petAPI.getDiscName(),
+    window.petAPI.getCaseShape(),
+  ]);
 brandIcon.innerHTML = getPetSvgMarkup(
   initialLabelColor,
   initialCaseColor,
   initialShowBorder,
   initialBorderColor,
   initialDiscName,
+  initialCaseShape,
 );
 window.petAPI.onLabelColorChanged((color) => {
   document.getElementById("pet-label")?.setAttribute("fill", color);
@@ -47,6 +50,9 @@ window.petAPI.onBorderColorChanged((color) => {
 window.petAPI.onDiscNameChanged((name) => {
   const el = document.getElementById("pet-disc-name");
   if (el) el.textContent = name;
+});
+window.petAPI.onCaseShapeChanged((shape) => {
+  document.getElementById("pet-case")?.setAttribute("d", casePathFor(shape));
 });
 
 // Any element with data-i18n="some.key" gets its text filled in here, both

@@ -67,6 +67,14 @@ export const IpcChannels = {
   setDiscName: "theme:set-disc-name",
   discNameChanged: "theme:disc-name-changed",
 
+  getFollowNowPlayingColor: "theme:get-follow-now-playing-color",
+  setFollowNowPlayingColor: "theme:set-follow-now-playing-color",
+  followNowPlayingColorChanged: "theme:follow-now-playing-color-changed",
+
+  getCaseShape: "theme:get-case-shape",
+  setCaseShape: "theme:set-case-shape",
+  caseShapeChanged: "theme:case-shape-changed",
+
   getOpacity: "settings:get-opacity",
   setOpacity: "settings:set-opacity",
 

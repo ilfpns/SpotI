@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 import { IpcChannels } from "../shared/ipcChannels";
 import type { AuthStatus, NowPlayingState, SpotifyResult } from "../shared/types";
 import type { Locale } from "../shared/i18n";
-import type { UiTheme, UiThemePreference } from "../shared/theme";
+import type { UiTheme, UiThemePreference, CaseShape } from "../shared/theme";
 import type { PetSize, PollingSpeed, HoverDelay } from "../shared/constants";
 import type { BestTrack, HistorySummary } from "../shared/types";
 import type { UpdateCheckResult } from "../main/updateChecker";
@@ -241,6 +241,30 @@ const petAPI = {
     const handler = (_e: unknown, name: string) => cb(name);
     ipcRenderer.on(IpcChannels.discNameChanged, handler);
     return () => ipcRenderer.removeListener(IpcChannels.discNameChanged, handler);
+  },
+
+  getFollowNowPlayingColor(): Promise<boolean> {
+    return ipcRenderer.invoke(IpcChannels.getFollowNowPlayingColor);
+  },
+  setFollowNowPlayingColor(value: boolean) {
+    ipcRenderer.send(IpcChannels.setFollowNowPlayingColor, value);
+  },
+  onFollowNowPlayingColorChanged(cb: (value: boolean) => void) {
+    const handler = (_e: unknown, value: boolean) => cb(value);
+    ipcRenderer.on(IpcChannels.followNowPlayingColorChanged, handler);
+    return () => ipcRenderer.removeListener(IpcChannels.followNowPlayingColorChanged, handler);
+  },
+
+  getCaseShape(): Promise<CaseShape> {
+    return ipcRenderer.invoke(IpcChannels.getCaseShape);
+  },
+  setCaseShape(shape: CaseShape) {
+    ipcRenderer.send(IpcChannels.setCaseShape, shape);
+  },
+  onCaseShapeChanged(cb: (shape: CaseShape) => void) {
+    const handler = (_e: unknown, shape: CaseShape) => cb(shape);
+    ipcRenderer.on(IpcChannels.caseShapeChanged, handler);
+    return () => ipcRenderer.removeListener(IpcChannels.caseShapeChanged, handler);
   },
 
   getOpacity(): Promise<number> {

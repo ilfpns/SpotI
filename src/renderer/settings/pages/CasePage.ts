@@ -1,5 +1,5 @@
-import { DISC_NAME_MAX_LENGTH, sanitizeDiscName } from "../../../shared/theme";
-import { initColorPicker } from "../uiControls";
+import { DISC_NAME_MAX_LENGTH, sanitizeDiscName, type CaseShape } from "../../../shared/theme";
+import { initColorPicker, createSegmented } from "../uiControls";
 
 export async function initCasePage() {
   initColorPicker(
@@ -8,6 +8,18 @@ export async function initCasePage() {
     () => window.petAPI.getCaseColor(),
     (c) => window.petAPI.setCaseColor(c),
     (cb) => window.petAPI.onCaseColorChanged(cb),
+  );
+
+  const shapeRoot = document.getElementById("case-shape-segmented") as HTMLElement;
+  const currentShape = await window.petAPI.getCaseShape();
+  createSegmented<CaseShape>(
+    shapeRoot,
+    [
+      { value: "classic", labelKey: "caseShape.classic" },
+      { value: "cut", labelKey: "caseShape.cut" },
+    ],
+    currentShape,
+    (next) => window.petAPI.setCaseShape(next),
   );
 
   const nameInput = document.getElementById("disc-name-input") as HTMLInputElement;
