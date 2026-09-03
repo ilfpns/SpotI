@@ -213,6 +213,16 @@ hidden` 상태를 명시적으로 관리(60ms 간격으로 커서 위치 폴링)
 - **디스크 회전**: `requestAnimationFrame`은 케이스가 벗겨져 있을 때만
   실행되고, 다시 씌우면 즉시 정지 — 유휴 상태에서 불필요한 리페인트가
   계속 발생하지 않음.
+- **볼륨 조회**: 설정 화면에서 볼륨을 읽을 때 별도로 `/me/player`를
+  다시 호출하지 않고, 폴링 루프가 이미 받아온 최신 상태를 재사용
+  (`pollingService.getLastKnownState()`) — 불필요한 네트워크 왕복 제거.
+- **펫 창의 backgroundThrottling**: 펫 창은 `webPreferences.
+  backgroundThrottling: false`로 생성됨 — 항상 위(always-on-top) 창이라도
+  OS/Chromium이 다른 창에 가려졌다고(occluded) 판단하면 기본적으로
+  `requestAnimationFrame`이 통째로 멈추는데, 이러면 케이스를 벗겨도
+  디스크가 회전하지 않거나 호버 감지가 끊기는 문제가 생김. 백그라운드
+  스로틀링을 꺼서 항상 정상 동작하도록 한 대신, 완전히 가려져 있을 때도
+  약간의 CPU를 계속 씀 — 펫 창 하나에 한정된 트레이드오프.
 
 ## 8. 빌드/배포
 

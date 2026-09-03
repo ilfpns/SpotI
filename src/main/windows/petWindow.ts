@@ -59,6 +59,12 @@ export function createPetWindow(): BrowserWindow {
       preload: join(__dirname, "../preload/preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      // An always-on-top floating pet is meant to keep wandering, hovering,
+      // and (once revealed) spinning even when the OS's own occlusion
+      // tracking thinks something else covers it — Chromium's default
+      // background throttling would otherwise pause its rAF-driven
+      // animations and hover detection in exactly that case.
+      backgroundThrottling: false,
     },
   });
 
