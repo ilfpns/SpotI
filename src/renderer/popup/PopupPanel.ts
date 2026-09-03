@@ -53,6 +53,9 @@ export class PopupPanel {
     // button would get lost — bind it on the stable container instead.
     this.unauthenticatedSection.addEventListener("click", async (e) => {
       if (!(e.target as HTMLElement).closest(".login-button")) return;
+      // A retry after a failed attempt must replace the previous message,
+      // not stack another one below it.
+      this.unauthenticatedSection.querySelectorAll(".status-message").forEach((el) => el.remove());
       const result = await window.petAPI.spotify.login();
       if (!result.ok && result.message) {
         const msg = document.createElement("div");
