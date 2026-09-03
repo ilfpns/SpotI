@@ -112,5 +112,3 @@ export const IpcChannels = {
 
   resetSettings: "settings:reset",
 } as const;
-
-export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels];

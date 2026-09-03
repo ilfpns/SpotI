@@ -73,7 +73,7 @@ class HeatmapTooltip {
 
     if (best) {
       const art = best.albumArtUrl
-        ? `<img class="heatmap-tooltip-art" src="${best.albumArtUrl}" alt="" />`
+        ? `<img class="heatmap-tooltip-art" src="${escapeHtml(best.albumArtUrl)}" alt="" />`
         : `<div class="heatmap-tooltip-art"></div>`;
       this.el.insertAdjacentHTML(
         "beforeend",
@@ -139,7 +139,7 @@ async function showBestTrack(titleEl: HTMLElement, bodyEl: HTMLElement, date: st
   }
 
   const art = best.albumArtUrl
-    ? `<img class="history-best-track-art" src="${best.albumArtUrl}" alt="" />`
+    ? `<img class="history-best-track-art" src="${escapeHtml(best.albumArtUrl)}" alt="" />`
     : `<div class="history-best-track-art"></div>`;
 
   bodyEl.innerHTML = `

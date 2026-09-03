@@ -2,6 +2,7 @@ import { BrowserWindow } from "electron";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { getPetIcon } from "../petIcon";
+import { hardenWindow } from "../windowSecurity";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -29,6 +30,8 @@ export function showSettingsWindow(): BrowserWindow {
       nodeIntegration: false,
     },
   });
+
+  hardenWindow(win);
 
   // The icon is rasterized from the pet's own SVG (see main/petIcon.ts) —
   // applied once it resolves rather than blocking window creation on it.

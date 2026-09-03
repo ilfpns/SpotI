@@ -121,6 +121,3 @@ export function getPetSvgMarkup(
 </svg>
 `.trim();
 }
-
-/** Default-colored markup, for places that don't yet know the user's theme. */
-export const PET_SVG_MARKUP = getPetSvgMarkup();

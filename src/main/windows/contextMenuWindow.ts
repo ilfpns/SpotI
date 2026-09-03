@@ -1,6 +1,7 @@
 import { BrowserWindow, screen } from "electron";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { hardenWindow } from "../windowSecurity";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -37,6 +38,7 @@ function ensureContextMenuWindow(): BrowserWindow {
     },
   });
 
+  hardenWindow(win);
   win.setAlwaysOnTop(true, "floating");
 
   win.on("blur", () => {

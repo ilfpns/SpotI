@@ -97,11 +97,6 @@ export function pollNow() {
   void tick();
 }
 
-export function stopPolling() {
-  if (timer) clearTimeout(timer);
-  timer = null;
-}
-
 /** The most recent poll's state, if any — lets a one-off read (e.g. opening Settings) reuse it instead of a fresh network round trip. */
 export function getLastKnownState(): NowPlayingState | null {
   return lastState;

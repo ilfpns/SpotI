@@ -1,6 +1,7 @@
 import { BrowserWindow, screen } from "electron";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { hardenWindow } from "../windowSecurity";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -44,6 +45,7 @@ export function createPopupWindow(): BrowserWindow {
     },
   });
 
+  hardenWindow(win);
   win.setAlwaysOnTop(true, "floating");
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 

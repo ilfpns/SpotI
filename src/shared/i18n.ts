@@ -511,7 +511,7 @@ const ja: Dict = {
   "error.unknown_error": "問題が発生しました。",
 };
 
-export const TRANSLATIONS: Record<Locale, Dict> = { ko, en, zh, ja };
+const TRANSLATIONS: Record<Locale, Dict> = { ko, en, zh, ja };
 
 export function translate(locale: Locale, key: string): string {
   return TRANSLATIONS[locale]?.[key] ?? TRANSLATIONS.en[key] ?? key;

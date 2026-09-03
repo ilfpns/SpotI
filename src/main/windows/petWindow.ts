@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { PET_SIZE_PX } from "../../shared/constants";
 import { getPetSize, getStartHidden, getOpacity, getPetPosition } from "../appSettingsStore";
+import { hardenWindow } from "../windowSecurity";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -68,6 +69,7 @@ export function createPetWindow(): BrowserWindow {
     },
   });
 
+  hardenWindow(win);
   win.setAlwaysOnTop(true, "floating");
   win.setIgnoreMouseEvents(true, { forward: true });
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });

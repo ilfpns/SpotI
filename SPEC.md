@@ -233,11 +233,24 @@ Canvas API만 사용). 트랙이 바뀔 때마다(재생 중 상태 변화가 �
   .onHeadersReceived`로 실제 Content-Security-Policy 헤더 적용
   (`default-src 'self'`, 원격 스크립트/스타일 출처 없음, 앨범 아트용
   `https:` 이미지만 허용). 개발 모드는 Vite HMR을 위해 적용 안 함.
-- **창 보안**: 4개 창 모두 `contextIsolation: true` / `nodeIntegration:
-  false`, `webSecurity`/`sandbox` 예외 없음.
-- **외부 URL 열기**: Spotify 대시보드 링크는 렌더러가 URL을 넘기는 게
-  아니라, 메인 프로세스에 고정된 주소만 여는 전용 IPC 채널 사용(렌더러가
-  임의 URL을 열게 할 수 없음).
+- **창 보안**: 모든 창(펫/팝업/설정/컨텍스트메뉴 + 트레이 아이콘 렌더링용
+  오프스크린 창) `contextIsolation: true` / `nodeIntegration: false`,
+  `sandbox`는 Electron 33 기본값(true) 그대로 예외 없음. `src/main/
+  windowSecurity.ts`의 `hardenWindow()`를 모든 창 생성 직후 호출해
+  `will-navigate`와 새 창 열기를 전부 거부 — 이 앱은 자기 자신의 번들
+  HTML만 로드하고 외부 페이지로 이동할 일이 전혀 없으므로, 뭔가가
+  탐색을 시도하더라도(버그든 뭐든) 조용히 막힘.
+- **외부 URL 열기**: Spotify 대시보드/릴리즈 페이지 링크는 렌더러가 URL을
+  넘기는 게 아니라, 메인 프로세스에 고정된 주소만 여는 전용 IPC 채널
+  사용(렌더러가 임의 URL을 열게 할 수 없음).
+- **XSS**: Spotify API에서 온 곡명/아티스트/앨범아트 URL은 모두
+  `escapeHtml()`을 거쳐서만 `innerHTML`에 들어감 — 텍스트 콘텐츠뿐
+  아니라 `<img src="...">` 같은 속성 위치에 들어가는 URL도 마찬가지
+  (속성값 안에서 따옴표로 깨져나가는 걸 막기 위해). 팝업의 앨범 아트
+  `<img>`는 `.src` 프로퍼티로 직접 대입(HTML 문자열 조립이 아님)해서
+  애초에 이 문제가 없음. LP 이름은 허용 문자 집합 자체가 `<`/`>`를
+  빼놓고 있고, SVG 텍스트 콘텐츠로만 삽입되며(속성 값 아님) `&`만
+  이스케이프하면 충분.
 - **비밀정보**: 저장소에 시크릿 없음(소스 스캔으로 확인). 개발용
   `spotify.config.json`은 `.gitignore` 처리.
 
@@ -253,9 +266,11 @@ Canvas API만 사용). 트랙이 바뀔 때마다(재생 중 상태 변화가 �
 - **디스크 회전**: `requestAnimationFrame`은 케이스가 벗겨져 있을 때만
   실행되고, 다시 씌우면 즉시 정지 — 유휴 상태에서 불필요한 리페인트가
   계속 발생하지 않음.
-- **볼륨 조회**: 설정 화면에서 볼륨을 읽을 때 별도로 `/me/player`를
+- **볼륨 조회 / 미디어 키 재생·일시정지**: 둘 다 별도로 `/me/player`를
   다시 호출하지 않고, 폴링 루프가 이미 받아온 최신 상태를 재사용
-  (`pollingService.getLastKnownState()`) — 불필요한 네트워크 왕복 제거.
+  (`pollingService.getLastKnownState()`) — 설정 화면에서 볼륨을 읽을 때,
+  그리고 하드웨어 미디어 키로 재생/일시정지를 누를 때 현재 재생 상태를
+  판단하려고 매번 새 네트워크 왕복을 만들지 않음.
 - **펫 창의 backgroundThrottling**: 펫 창은 `webPreferences.
   backgroundThrottling: false`로 생성됨 — 항상 위(always-on-top) 창이라도
   OS/Chromium이 다른 창에 가려졌다고(occluded) 판단하면 기본적으로

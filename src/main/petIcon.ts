@@ -1,6 +1,7 @@
-import { BrowserWindow, nativeImage, type NativeImage } from "electron";
+import { BrowserWindow, type NativeImage } from "electron";
 import { getPetSvgMarkup } from "../shared/petSvg";
 import { getLabelColor, getCaseColor, getShowBorder, getBorderColor, getDiscName, getCaseShape } from "./themeStore";
+import { hardenWindow } from "./windowSecurity";
 
 const ICON_SIZE = 128;
 
@@ -27,6 +28,7 @@ export function getPetIcon(): Promise<NativeImage> {
       backgroundColor: "#00000000",
       webPreferences: { offscreen: true },
     });
+    hardenWindow(win);
 
     const html = `<!doctype html><html><head><style>
       html,body{margin:0;padding:0;width:${ICON_SIZE}px;height:${ICON_SIZE}px;background:transparent;}
@@ -42,10 +44,6 @@ export function getPetIcon(): Promise<NativeImage> {
   })();
 
   return pending;
-}
-
-export function getPetIconSync(): NativeImage {
-  return cachedIcon ?? nativeImage.createEmpty();
 }
 
 /** Call after the theme color changes so the next getPetIcon() re-renders. */

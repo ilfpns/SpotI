@@ -1,13 +1,22 @@
 import { globalShortcut } from "electron";
 import * as spotifyApiClient from "./spotify/spotifyApiClient";
-import { pollNow } from "./spotify/pollingService";
+import { pollNow, getLastKnownState } from "./spotify/pollingService";
 import { getMediaKeysEnabled } from "./appSettingsStore";
 
 const KEYS = ["MediaPlayPause", "MediaNextTrack", "MediaPreviousTrack"] as const;
 
 async function togglePlayPause() {
-  const result = await spotifyApiClient.getNowPlaying();
-  const isPlaying = result.ok && !!result.data?.isPlaying;
+  // Reuses the polling loop's already-cached state instead of a fresh
+  // network round trip just to read isPlaying — falls back to a live
+  // fetch only for the rare case a key is pressed before the first poll.
+  const cached = getLastKnownState();
+  let isPlaying: boolean;
+  if (cached) {
+    isPlaying = cached.isPlaying;
+  } else {
+    const result = await spotifyApiClient.getNowPlaying();
+    isPlaying = result.ok && !!result.data?.isPlaying;
+  }
   await (isPlaying ? spotifyApiClient.pause() : spotifyApiClient.play());
   pollNow();
 }
