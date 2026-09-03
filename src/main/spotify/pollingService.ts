@@ -15,6 +15,31 @@ let lastState: NowPlayingState | null = null;
 let hasPolledOnce = false;
 let lastTickAt = Date.now();
 
+// A regular scheduled tick can still be mid-flight (awaiting its own
+// getNowPlaying() call) when a play/pause action fires — if that tick
+// happens to have queried Spotify just *before* the action actually took
+// effect there, it resolves with stale data and would otherwise overwrite
+// the correct optimistic broadcast the instant it lands, causing a visible
+// flicker (case pops back open/shut, then settles). Every tick grabs a
+// fresh token at its own start and only broadcasts if it's still the most
+// recent one by the time it resolves; anything that supersedes it
+// (a newer tick, or an optimistic broadcast) bumps this and silently
+// discards the stale response instead of acting on it.
+let requestToken = 0;
+
+// Spotify's own GET /me/player can still echo the pre-action isPlaying for a
+// brief moment after a play/pause PUT has already returned success (server-side
+// propagation lag) — the immediate pollNow() right after that action, or even a
+// regular tick landing in this window, would otherwise fetch that stale value
+// and flicker the confirmed state back before a later tick corrects it again.
+// While this guard is active, a poll's isPlaying is trusted only if it agrees
+// with the optimistic value; a disagreement is treated as propagation lag and
+// overridden, while every other field (progress, track) still comes from the
+// fresh poll.
+const OPTIMISTIC_GUARD_MS = 1500;
+let lastOptimisticIsPlaying: boolean | null = null;
+let optimisticGuardUntil = 0;
+
 /** Every window cares about now-playing state (the popup shows it, the pet's case reveal/spin now mirrors isPlaying) — not just the popup. */
 function broadcastNowPlaying(state: NowPlayingState | null) {
   for (const win of BrowserWindow.getAllWindows()) {
@@ -55,13 +80,23 @@ async function notifyTrackChanged(state: NowPlayingState) {
 }
 
 async function tick() {
+  const myToken = ++requestToken;
   const now = Date.now();
   const elapsedSinceLastTick = now - lastTickAt;
   lastTickAt = now;
 
   const result = await getNowPlaying();
-  if (result.ok) {
-    const nextState = result.data ?? null;
+  if (myToken === requestToken && result.ok) {
+    let nextState = result.data ?? null;
+
+    if (
+      nextState &&
+      lastOptimisticIsPlaying !== null &&
+      Date.now() < optimisticGuardUntil &&
+      nextState.isPlaying !== lastOptimisticIsPlaying
+    ) {
+      nextState = { ...nextState, isPlaying: lastOptimisticIsPlaying };
+    }
 
     if (nextState?.isPlaying && nextState.trackId) {
       recordListening(
@@ -106,15 +141,21 @@ export function startPolling() {
  */
 export function broadcastOptimisticPlayState(isPlaying: boolean): void {
   if (!lastState) return;
+  // Invalidates any tick that's already mid-flight (queried Spotify before
+  // this action took effect there) so its stale response gets silently
+  // discarded instead of overwriting this the instant it lands.
+  requestToken++;
+  lastOptimisticIsPlaying = isPlaying;
+  optimisticGuardUntil = Date.now() + OPTIMISTIC_GUARD_MS;
   const optimistic = { ...lastState, isPlaying };
   lastState = optimistic;
   broadcastNowPlaying(optimistic);
 }
 
-/** Re-poll immediately (e.g. right after a play/pause/skip action) instead of waiting for the next tick. */
-export function pollNow() {
+/** Re-poll immediately (e.g. right after a play/pause/skip action) instead of waiting for the next tick. Returns the tick's promise so tests can await it; production call sites intentionally leave it unawaited. */
+export function pollNow(): Promise<void> {
   if (timer) clearTimeout(timer);
-  void tick();
+  return tick();
 }
 
 /** The most recent poll's state, if any — lets a one-off read (e.g. opening Settings) reuse it instead of a fresh network round trip. */
