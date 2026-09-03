@@ -49,7 +49,9 @@ function pointInRect(
 function isCursorOverPetOrPopup(): boolean {
   const cursor = screen.getCursorScreenPoint();
   const petWin = getPetWindow();
-  if (!petWin.isDestroyed() && pointInRect(cursor, petWin.getBounds(), HOVER_MARGIN_PX)) return true;
+  if (!petWin.isDestroyed() && petWin.isVisible() && pointInRect(cursor, petWin.getBounds(), HOVER_MARGIN_PX)) {
+    return true;
+  }
 
   const popupWin = getPopupWindow();
   if (!popupWin.isDestroyed() && popupWin.isVisible() && pointInRect(cursor, popupWin.getBounds(), HOVER_MARGIN_PX)) {

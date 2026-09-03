@@ -8,6 +8,7 @@ import { tryRestoreSession, getAuthStatus } from "./spotify/authService";
 import { onPopupVisibilityChange, startPopupCursorWatcher } from "./popupController";
 import { IpcChannels } from "../shared/ipcChannels";
 import { flushHistoryNow } from "./listeningHistoryStore";
+import { registerMediaKeys, unregisterMediaKeys } from "./mediaKeys";
 
 app.whenReady().then(async () => {
   createPetWindow();
@@ -21,6 +22,7 @@ app.whenReady().then(async () => {
   startPopupCursorWatcher();
 
   void createTray();
+  registerMediaKeys();
 
   const restored = await tryRestoreSession();
   if (restored) {
@@ -34,4 +36,8 @@ app.on("window-all-closed", () => {
 
 app.on("before-quit", () => {
   flushHistoryNow();
+});
+
+app.on("will-quit", () => {
+  unregisterMediaKeys();
 });

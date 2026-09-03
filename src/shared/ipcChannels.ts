@@ -67,6 +67,15 @@ export const IpcChannels = {
   setSpinAnimation: "settings:set-spin-animation",
   spinAnimationChanged: "settings:spin-animation-changed",
 
+  getMediaKeysEnabled: "settings:get-media-keys-enabled",
+  setMediaKeysEnabled: "settings:set-media-keys-enabled",
+
+  getNotificationSound: "settings:get-notification-sound",
+  setNotificationSound: "settings:set-notification-sound",
+
+  getStartHidden: "settings:get-start-hidden",
+  setStartHidden: "settings:set-start-hidden",
+
   getHistorySummary: "history:get-summary",
   getBestTrackForDay: "history:get-best-track-for-day",
   clearHistory: "history:clear",

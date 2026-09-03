@@ -4,7 +4,7 @@ import { getNowPlaying } from "./spotifyApiClient";
 import { IpcChannels } from "../../shared/ipcChannels";
 import { POLL_INTERVAL_IDLE_MS, POLLING_INTERVAL_ACTIVE_MS } from "../../shared/constants";
 import type { NowPlayingState } from "../../shared/types";
-import { getNotifyTrackChange, getPollingSpeed } from "../appSettingsStore";
+import { getNotifyTrackChange, getPollingSpeed, getNotificationSound } from "../appSettingsStore";
 import { getLocale } from "../localeStore";
 import { translate } from "../../shared/i18n";
 import { recordListening } from "../listeningHistoryStore";
@@ -45,7 +45,7 @@ async function notifyTrackChanged(state: NowPlayingState) {
     title: state.title ?? translate(locale, "popup.unknownTitle"),
     body: state.artist ?? translate(locale, "popup.unknownArtist"),
     icon,
-    silent: true,
+    silent: !getNotificationSound(),
   }).show();
 }
 

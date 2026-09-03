@@ -16,6 +16,9 @@ interface StoredSettings {
   pollingSpeed: PollingSpeed;
   hoverDelay: HoverDelay;
   spinAnimation: boolean;
+  mediaKeysEnabled: boolean;
+  notificationSound: boolean;
+  startHidden: boolean;
 }
 
 const DEFAULTS: StoredSettings = {
@@ -24,6 +27,9 @@ const DEFAULTS: StoredSettings = {
   pollingSpeed: DEFAULT_POLLING_SPEED,
   hoverDelay: DEFAULT_HOVER_DELAY,
   spinAnimation: true,
+  mediaKeysEnabled: true,
+  notificationSound: true,
+  startHidden: false,
 };
 
 function filePath(): string {
@@ -50,6 +56,11 @@ function load(): StoredSettings {
         hoverDelay:
           parsed?.hoverDelay === "fast" || parsed?.hoverDelay === "slow" ? parsed.hoverDelay : DEFAULTS.hoverDelay,
         spinAnimation: typeof parsed?.spinAnimation === "boolean" ? parsed.spinAnimation : DEFAULTS.spinAnimation,
+        mediaKeysEnabled:
+          typeof parsed?.mediaKeysEnabled === "boolean" ? parsed.mediaKeysEnabled : DEFAULTS.mediaKeysEnabled,
+        notificationSound:
+          typeof parsed?.notificationSound === "boolean" ? parsed.notificationSound : DEFAULTS.notificationSound,
+        startHidden: typeof parsed?.startHidden === "boolean" ? parsed.startHidden : DEFAULTS.startHidden,
       };
       return cached;
     } catch {
@@ -102,6 +113,30 @@ export function getSpinAnimation(): boolean {
 }
 export function setSpinAnimation(value: boolean): void {
   load().spinAnimation = value;
+  persist();
+}
+
+export function getMediaKeysEnabled(): boolean {
+  return load().mediaKeysEnabled;
+}
+export function setMediaKeysEnabled(value: boolean): void {
+  load().mediaKeysEnabled = value;
+  persist();
+}
+
+export function getNotificationSound(): boolean {
+  return load().notificationSound;
+}
+export function setNotificationSound(value: boolean): void {
+  load().notificationSound = value;
+  persist();
+}
+
+export function getStartHidden(): boolean {
+  return load().startHidden;
+}
+export function setStartHidden(value: boolean): void {
+  load().startHidden = value;
   persist();
 }
 

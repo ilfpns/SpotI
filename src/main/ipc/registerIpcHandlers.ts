@@ -37,7 +37,14 @@ import {
   setHoverDelay,
   getSpinAnimation,
   setSpinAnimation,
+  getMediaKeysEnabled,
+  setMediaKeysEnabled,
+  getNotificationSound,
+  setNotificationSound,
+  getStartHidden,
+  setStartHidden,
 } from "../appSettingsStore";
+import { refreshMediaKeys } from "../mediaKeys";
 import { DEFAULT_UI_THEME, DEFAULT_SHOW_BORDER } from "../../shared/theme";
 import type { UiTheme } from "../../shared/theme";
 import { getHistorySummary, getBestTrackForDay, clearHistory } from "../listeningHistoryStore";
@@ -134,6 +141,7 @@ export function registerIpcHandlers() {
     for (const win of BrowserWindow.getAllWindows()) {
       win.webContents.send(IpcChannels.localeChanged, locale);
     }
+    getTrayMenuRebuilder()?.();
   });
 
   ipcMain.handle(IpcChannels.getLabelColor, () => getLabelColor());
@@ -222,6 +230,18 @@ export function registerIpcHandlers() {
     }
   });
 
+  ipcMain.handle(IpcChannels.getMediaKeysEnabled, () => getMediaKeysEnabled());
+  ipcMain.on(IpcChannels.setMediaKeysEnabled, (_e, value: boolean) => {
+    setMediaKeysEnabled(value);
+    refreshMediaKeys();
+  });
+
+  ipcMain.handle(IpcChannels.getNotificationSound, () => getNotificationSound());
+  ipcMain.on(IpcChannels.setNotificationSound, (_e, value: boolean) => setNotificationSound(value));
+
+  ipcMain.handle(IpcChannels.getStartHidden, () => getStartHidden());
+  ipcMain.on(IpcChannels.setStartHidden, (_e, value: boolean) => setStartHidden(value));
+
   ipcMain.handle(IpcChannels.getHistorySummary, () => getHistorySummary(HISTORY_DAYS_WINDOW));
   ipcMain.handle(IpcChannels.getBestTrackForDay, (_e, date: string) => getBestTrackForDay(date));
   ipcMain.handle(IpcChannels.clearHistory, () => clearHistory());
@@ -249,6 +269,10 @@ export function registerIpcHandlers() {
     refreshPollingSpeed();
     setHoverDelay(DEFAULT_HOVER_DELAY);
     setSpinAnimation(true);
+    setMediaKeysEnabled(true);
+    refreshMediaKeys();
+    setNotificationSound(true);
+    setStartHidden(false);
 
     invalidatePetIconCache();
     for (const win of BrowserWindow.getAllWindows()) {
@@ -262,15 +286,26 @@ export function registerIpcHandlers() {
     }
     const icon = await getPetIcon();
     getPetTrayIconSetter()?.(icon);
+    getTrayMenuRebuilder()?.();
   });
 }
 
-// Set by trayMenu.ts once the tray exists, so a theme change can refresh its
-// icon too without this module needing to import Tray/BrowserWindow wiring.
+// Set by trayMenu.ts once the tray exists, so a theme/locale change can
+// refresh it too without this module needing to import Tray/BrowserWindow
+// wiring (trayMenu.ts already imports from this module, so a direct import
+// the other way round would be circular).
 let petTrayIconSetter: ((icon: Electron.NativeImage) => void) | null = null;
 export function registerTrayIconSetter(setter: (icon: Electron.NativeImage) => void) {
   petTrayIconSetter = setter;
 }
 function getPetTrayIconSetter() {
   return petTrayIconSetter;
+}
+
+let trayMenuRebuilder: (() => void) | null = null;
+export function registerTrayMenuRebuilder(rebuilder: () => void) {
+  trayMenuRebuilder = rebuilder;
+}
+function getTrayMenuRebuilder() {
+  return trayMenuRebuilder;
 }

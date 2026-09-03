@@ -165,6 +165,27 @@ const petAPI = {
     return () => ipcRenderer.removeListener(IpcChannels.spinAnimationChanged, handler);
   },
 
+  getMediaKeysEnabled(): Promise<boolean> {
+    return ipcRenderer.invoke(IpcChannels.getMediaKeysEnabled);
+  },
+  setMediaKeysEnabled(value: boolean) {
+    ipcRenderer.send(IpcChannels.setMediaKeysEnabled, value);
+  },
+
+  getNotificationSound(): Promise<boolean> {
+    return ipcRenderer.invoke(IpcChannels.getNotificationSound);
+  },
+  setNotificationSound(value: boolean) {
+    ipcRenderer.send(IpcChannels.setNotificationSound, value);
+  },
+
+  getStartHidden(): Promise<boolean> {
+    return ipcRenderer.invoke(IpcChannels.getStartHidden);
+  },
+  setStartHidden(value: boolean) {
+    ipcRenderer.send(IpcChannels.setStartHidden, value);
+  },
+
   resetSettings(): Promise<void> {
     return ipcRenderer.invoke(IpcChannels.resetSettings);
   },

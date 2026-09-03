@@ -58,7 +58,31 @@ export function initGeneralPage() {
   initPollingSpeed();
   initHoverDelay();
   initSpinAnimation();
+  initMediaKeys();
+  initNotificationSound();
+  initStartHidden();
   initResetButton();
+}
+
+function initMediaKeys() {
+  const root = document.getElementById("media-keys-toggle") as HTMLElement;
+  window.petAPI.getMediaKeysEnabled().then((value) => {
+    createToggle(root, value, (next) => window.petAPI.setMediaKeysEnabled(next));
+  });
+}
+
+function initNotificationSound() {
+  const root = document.getElementById("notification-sound-toggle") as HTMLElement;
+  window.petAPI.getNotificationSound().then((value) => {
+    createToggle(root, value, (next) => window.petAPI.setNotificationSound(next));
+  });
+}
+
+function initStartHidden() {
+  const root = document.getElementById("start-hidden-toggle") as HTMLElement;
+  window.petAPI.getStartHidden().then((value) => {
+    createToggle(root, value, (next) => window.petAPI.setStartHidden(next));
+  });
 }
 
 function initHoverDelay() {

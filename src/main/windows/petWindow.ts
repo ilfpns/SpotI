@@ -2,7 +2,7 @@ import { BrowserWindow, screen } from "electron";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { PET_SIZE_PX } from "../../shared/constants";
-import { getPetSize } from "../appSettingsStore";
+import { getPetSize, getStartHidden } from "../appSettingsStore";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -34,6 +34,7 @@ export function createPetWindow(): BrowserWindow {
     y: initialY,
     width: size,
     height: size,
+    show: !getStartHidden(),
     transparent: true,
     backgroundColor: "#00000000",
     frame: false,
