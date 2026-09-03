@@ -124,6 +124,12 @@ function setSpinning(next: boolean) {
 }
 
 let revealed = false;
+// Whether there's currently any track loaded at all (paused or playing) —
+// distinct from `revealed`/isPlaying. A click with nothing loaded has
+// nothing to resume: play() with no context/device is meaningless, so the
+// case should just stay on rather than optimistically popping open and then
+// silently reverting once the next poll confirms there was never a track.
+let hasTrack = false;
 
 /** Updates the case/spin visuals to match `next`, but only if it's actually a change — called both from clicks and from real playback-state updates, so it must stay idempotent. */
 function applyRevealed(next: boolean) {
@@ -138,6 +144,7 @@ function applyRevealed(next: boolean) {
 // key, another device entirely), the pet's case follows along on the next
 // poll instead of drifting out of sync with what's really playing.
 window.petAPI.spotify.onNowPlayingChanged((state) => {
+  hasTrack = !!state?.trackId;
   applyRevealed(!!state?.isPlaying);
 });
 
@@ -156,6 +163,12 @@ setupInteraction(
     // the popup's own controls use). Fire-and-forget — with nothing
     // connected/no active device this just silently no-ops, same as every
     // other playback control in that situation.
+    //
+    // With no track loaded at all (not even paused), there's nothing to
+    // resume — skip the reveal entirely rather than optimistically popping
+    // the case open and then silently snapping it back once the next poll
+    // confirms nothing was ever playing.
+    if (!revealed && !hasTrack) return;
     applyRevealed(!revealed);
     void (revealed ? window.petAPI.spotify.play() : window.petAPI.spotify.pause());
   },
