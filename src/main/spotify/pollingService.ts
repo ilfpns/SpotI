@@ -10,6 +10,7 @@ import { recordListening, recordTrackStart } from "../listeningHistoryStore";
 
 let timer: ReturnType<typeof setTimeout> | null = null;
 let currentIntervalMs = POLLING_INTERVAL_ACTIVE_MS[DEFAULT_POLLING_SPEED];
+let popupIsActive = false;
 let lastState: NowPlayingState | null = null;
 let hasPolledOnce = false;
 let lastTickAt = Date.now();
@@ -153,18 +154,33 @@ async function tick() {
   timer = setTimeout(tick, currentIntervalMs);
 }
 
-// The polling-speed setting now governs the interval at all times, not just
-// while the popup happens to be open — it used to fall back to a fixed 3s
-// idle interval the rest of the time, which meant picking "fast" barely
-// mattered since the pet spends most of its time with the popup closed.
+// Polling while the popup is actually open (i.e. someone's watching the
+// progress bar) always uses the configured speed straight. The rest of the
+// time — which is most of the pet's life — it backs off to a calmer
+// multiple of that same speed: own actions (play/pause/etc.) already feel
+// instant regardless of this interval via broadcastOptimisticPlayState(), so
+// idle polling exists only to catch external changes and keep cached data
+// (volume, shuffle/repeat, progress) roughly fresh, not for responsiveness.
+// Constantly polling at full speed even with nobody looking meant real
+// everyday use could burn through Spotify's rate limit the same way heavy
+// testing did — this still respects the chosen speed (unlike the old fixed
+// 3s idle interval, which ignored it) while cutting steady-state request
+// volume by IDLE_MULTIPLIER.
+const IDLE_MULTIPLIER = 3;
 function applyInterval() {
-  currentIntervalMs = POLLING_INTERVAL_ACTIVE_MS[getPollingSpeed()];
+  const base = POLLING_INTERVAL_ACTIVE_MS[getPollingSpeed()];
+  currentIntervalMs = popupIsActive ? base : base * IDLE_MULTIPLIER;
 }
 
 export function startPolling() {
   if (timer) return;
   applyInterval(); // pick up the actually-saved speed, not just the default
   timer = setTimeout(tick, 0);
+}
+
+export function setPollingActive(active: boolean) {
+  popupIsActive = active;
+  applyInterval();
 }
 
 /**
