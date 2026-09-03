@@ -2,7 +2,7 @@ import { ipcMain, app, shell, BrowserWindow, nativeTheme } from "electron";
 import { IpcChannels } from "../../shared/ipcChannels";
 import * as authService from "../spotify/authService";
 import * as spotifyApiClient from "../spotify/spotifyApiClient";
-import { getPetWindow, resizePetWindow, currentPetSizePx, applyPetOpacity } from "../windows/petWindow";
+import { getPetWindow, resizePetWindow, currentPetSizePx, applyPetOpacity, clampToVisibleArea } from "../windows/petWindow";
 import { getSpotifyClientId, setSpotifyClientId } from "../spotify/config";
 import { checkForUpdate } from "../updateChecker";
 import { getPopupWindow } from "../windows/popupWindow";
@@ -179,7 +179,8 @@ export function registerIpcHandlers() {
     // live win.getBounds() value — reading that back would just feed any
     // drift right back in and compound it over the drag.
     const size = currentPetSizePx();
-    win.setBounds({ x: Math.round(pos.x), y: Math.round(pos.y), width: size, height: size });
+    const clamped = clampToVisibleArea(Math.round(pos.x), Math.round(pos.y), size);
+    win.setBounds({ x: clamped.x, y: clamped.y, width: size, height: size });
   });
 
   ipcMain.handle(IpcChannels.getPosition, () => {

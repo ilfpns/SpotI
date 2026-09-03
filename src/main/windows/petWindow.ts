@@ -18,6 +18,17 @@ export function currentPetSizePx(): number {
   return PET_SIZE_PX[getPetSize()];
 }
 
+/** Whether a size x size window at (x, y) would land fully within some currently connected display's work area — checking only the primary display would strand a position saved on a second monitor (or from a since-changed monitor layout) and silently reset it every restart, which looks exactly like the pet "disappearing" to someone looking at the other screen. */
+function isOnAnyDisplay(x: number, y: number, size: number): boolean {
+  return screen.getAllDisplays().some(
+    (d) =>
+      x >= d.workArea.x &&
+      x <= d.workArea.x + d.workArea.width - size &&
+      y >= d.workArea.y &&
+      y <= d.workArea.y + d.workArea.height - size,
+  );
+}
+
 export function createPetWindow(): BrowserWindow {
   // Deliberately small: Windows silently refuses to keep a window topmost once
   // it covers a large fraction of the screen (treated like a fullscreen app).
@@ -31,11 +42,11 @@ export function createPetWindow(): BrowserWindow {
   let initialY = workArea.y + workArea.height - size - 24;
 
   // Restore wherever the user last dragged it, as long as that point still
-  // falls on the current primary display's work area (a saved spot from a
-  // monitor that's since been unplugged would otherwise strand it off-screen).
+  // falls within some currently connected display's work area (a saved spot
+  // from a monitor that's since been unplugged, or a stale/corrupt value,
+  // would otherwise strand it off-screen).
   const saved = getPetPosition();
-  if (saved && saved.x >= workArea.x && saved.x <= workArea.x + workArea.width - size &&
-      saved.y >= workArea.y && saved.y <= workArea.y + workArea.height - size) {
+  if (saved && isOnAnyDisplay(saved.x, saved.y, size)) {
     initialX = saved.x;
     initialY = saved.y;
   }
@@ -102,6 +113,15 @@ export function createPetWindow(): BrowserWindow {
 
   petWindow = win;
   return win;
+}
+
+/** Clamps (x, y) to fit within whichever connected display it's nearest to, for a size x size window — used every time the pet's position is set from outside a real, already-on-screen drag, so a corrupted or stale coordinate (see moveTo's own handler comment on Windows silently corrupting setBounds() during a drag) can never leave it stranded off every display. */
+export function clampToVisibleArea(x: number, y: number, size: number): { x: number; y: number } {
+  const wa = screen.getDisplayMatching({ x, y, width: size, height: size }).workArea;
+  return {
+    x: Math.min(Math.max(x, wa.x), wa.x + wa.width - size),
+    y: Math.min(Math.max(y, wa.y), wa.y + wa.height - size),
+  };
 }
 
 /** Resize the pet window in place (top-left corner stays put) when the user changes the size preset. */
