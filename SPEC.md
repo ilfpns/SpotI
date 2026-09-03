@@ -110,15 +110,26 @@ hidden` 상태를 명시적으로 관리(60ms 간격으로 커서 위치 폴링)
 - Spotify 미연결 시 연결 버튼 표시.
 - 곡명 오른쪽에 하트 버튼 — Spotify의 실제 Liked Songs에 저장/제거
   (`PUT`/`DELETE /me/tracks`). 클릭 시 낙관적으로 하트부터 빨갛게 채우고,
-  실패하면(그리고 그 사이 곡이 안 바뀌었으면) 되돌림. 트랙이 바뀔
-  때마다 한 번씩만 `GET /me/tracks/contains`로 저장 여부를 새로 확인.
-  설정 창을 열거나 하지는 않음 — 즐겨찾기 목록은 설정 → 즐겨찾기 탭에서
-  따로 확인(4.7절).
+  실패하면(그리고 그 사이 곡이 안 바뀌었으면) 되돌리고 오류 메시지를
+  보여줌(아래). 트랙이 바뀔 때마다 한 번씩만 `GET /me/tracks/contains`
+  로 저장 여부를 새로 확인. 설정 창을 열거나 하지는 않음 — 즐겨찾기
+  목록은 설정 → 즐겨찾기 탭에서 따로 확인(4.7절).
   **Liked Songs API는 `user-library-modify`/`user-library-read` 스코프가
   필요** — 이 기능을 추가하며 `SPOTIFY_SCOPES`에 새로 넣었으므로,
   이전에 이미 로그인해 둔 계정은 Settings → Spotify에서 로그아웃 후
   다시 연결해야 하트가 동작함(기존 리프레시 토큰은 새 스코프를 못
   받아옴 — Spotify OAuth의 일반적인 동작).
+  - **전용 오류 코드(`missing_scope`)**: Liked Songs 엔드포인트(저장/
+    제거/확인/목록 4개 모두)의 403은 다른 재생 관련 403과 달리
+    `premium_required`로 매핑하지 않음 — Liked Songs는 애초에 Premium이
+    필요 없는 기능이라 그 라벨 자체가 사실과 다르고, 재연결이 필요하다는
+    걸 사용자가 알 방법이 없었음(하트가 그냥 조용히 원래대로 돌아갈
+    뿐). `assertLibraryOkOrThrow()`로 이 네 엔드포인트만 403을
+    `missing_scope`로 별도 매핑하고, 하트 클릭 실패 시
+    `PlaybackControls.showError()`(원래 재생 컨트롤 전용이던 걸
+    공개 메서드로 바꿔 재사용, `PopupPanel`이 생성 시점에 콜백으로
+    연결)로 "즐겨찾기 기능을 쓰려면 Spotify를 다시 연결해야 합니다..."
+    같은 구체적 안내를 보여줌.
 
 ### 3.3 미디어 키
 

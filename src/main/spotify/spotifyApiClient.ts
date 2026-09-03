@@ -117,6 +117,12 @@ function assertOkOrThrow(status: number) {
   }
 }
 
+/** Same as assertOkOrThrow, but for the Liked Songs endpoints specifically — those never require Premium, so a 403 there means the session's token predates the user-library-read/modify scopes, not that the account lacks Premium. */
+function assertLibraryOkOrThrow(status: number) {
+  if (status === 403) throw { code: "missing_scope" as SpotifyErrorCode };
+  assertOkOrThrow(status);
+}
+
 export function play(): Promise<SpotifyResult<void>> {
   return callWithErrorMapping(async () => {
     const { status } = await spotifyFetch("/me/player/play", { method: "PUT" });
@@ -181,7 +187,7 @@ export function setRepeat(mode: "off" | "context" | "track"): Promise<SpotifyRes
 export function isTrackSaved(trackId: string): Promise<SpotifyResult<boolean>> {
   return callWithErrorMapping(async () => {
     const { status, json } = await spotifyFetch(`/me/tracks/contains?ids=${encodeURIComponent(trackId)}`);
-    assertOkOrThrow(status);
+    assertLibraryOkOrThrow(status);
     return Array.isArray(json) && json[0] === true;
   });
 }
@@ -189,21 +195,21 @@ export function isTrackSaved(trackId: string): Promise<SpotifyResult<boolean>> {
 export function saveTrack(trackId: string): Promise<SpotifyResult<void>> {
   return callWithErrorMapping(async () => {
     const { status } = await spotifyFetch(`/me/tracks?ids=${encodeURIComponent(trackId)}`, { method: "PUT" });
-    assertOkOrThrow(status);
+    assertLibraryOkOrThrow(status);
   });
 }
 
 export function removeSavedTrack(trackId: string): Promise<SpotifyResult<void>> {
   return callWithErrorMapping(async () => {
     const { status } = await spotifyFetch(`/me/tracks?ids=${encodeURIComponent(trackId)}`, { method: "DELETE" });
-    assertOkOrThrow(status);
+    assertLibraryOkOrThrow(status);
   });
 }
 
 export function getSavedTracks(limit: number, offset: number): Promise<SpotifyResult<SavedTracksPage>> {
   return callWithErrorMapping(async () => {
     const { status, json } = await spotifyFetch(`/me/tracks?limit=${limit}&offset=${offset}`);
-    assertOkOrThrow(status);
+    assertLibraryOkOrThrow(status);
     const body = json as {
       items: {
         added_at: string;

@@ -30,7 +30,11 @@ export class TrackInfo {
   private lastFrameTime = 0;
   private rafHandle = 0;
 
-  constructor(discContainer: HTMLElement, metaContainer: HTMLElement) {
+  constructor(
+    discContainer: HTMLElement,
+    metaContainer: HTMLElement,
+    private onFavoriteError: (error?: string) => void,
+  ) {
     this.discEl = document.createElement("div");
     this.discEl.className = "disc-wrap";
     discContainer.appendChild(this.discEl);
@@ -141,9 +145,12 @@ export class TrackInfo {
     const result = nextSaved
       ? await window.petAPI.spotify.saveTrack(trackId)
       : await window.petAPI.spotify.removeSavedTrack(trackId);
-    if (!result.ok && this.lastState?.trackId === trackId) {
-      this.savedState = !nextSaved;
-      this.updateHeartIcon();
+    if (!result.ok) {
+      this.onFavoriteError(result.error);
+      if (this.lastState?.trackId === trackId) {
+        this.savedState = !nextSaved;
+        this.updateHeartIcon();
+      }
     }
   }
 

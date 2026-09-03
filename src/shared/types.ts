@@ -4,7 +4,13 @@ export type SpotifyErrorCode =
   | "no_active_device"
   | "rate_limited"
   | "network_error"
-  | "unknown_error";
+  | "unknown_error"
+  // A 403 specifically from the Liked Songs endpoints (isTrackSaved/
+  // saveTrack/removeSavedTrack/getSavedTracks) — those never require
+  // Premium, so mapping it to premium_required like a playback 403 would
+  // be actively wrong; it really means the current session's token
+  // predates the user-library-read/modify scopes and needs reconnecting.
+  | "missing_scope";
 
 export interface SpotifyResult<T> {
   ok: boolean;
