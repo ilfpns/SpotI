@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 import { IpcChannels } from "../shared/ipcChannels";
 import type { AuthStatus, NowPlayingState, SpotifyResult } from "../shared/types";
 import type { Locale } from "../shared/i18n";
-import type { UiTheme } from "../shared/theme";
+import type { UiTheme, UiThemePreference } from "../shared/theme";
 import type { PetSize, PollingSpeed, HoverDelay } from "../shared/constants";
 import type { BestTrack, HistorySummary } from "../shared/types";
 import type { UpdateCheckResult } from "../main/updateChecker";
@@ -98,16 +98,24 @@ const petAPI = {
     return () => ipcRenderer.removeListener(IpcChannels.fontColorChanged, handler);
   },
 
-  getUiTheme(): Promise<UiTheme> {
+  getUiTheme(): Promise<UiThemePreference> {
     return ipcRenderer.invoke(IpcChannels.getUiTheme);
   },
-  setUiTheme(theme: UiTheme) {
+  setUiTheme(theme: UiThemePreference) {
     ipcRenderer.send(IpcChannels.setUiTheme, theme);
   },
-  onUiThemeChanged(cb: (theme: UiTheme) => void) {
-    const handler = (_e: unknown, theme: UiTheme) => cb(theme);
+  onUiThemeChanged(cb: (theme: UiThemePreference) => void) {
+    const handler = (_e: unknown, theme: UiThemePreference) => cb(theme);
     ipcRenderer.on(IpcChannels.uiThemeChanged, handler);
     return () => ipcRenderer.removeListener(IpcChannels.uiThemeChanged, handler);
+  },
+  getEffectiveUiTheme(): Promise<UiTheme> {
+    return ipcRenderer.invoke(IpcChannels.getEffectiveUiTheme);
+  },
+  onEffectiveUiThemeChanged(cb: (theme: UiTheme) => void) {
+    const handler = (_e: unknown, theme: UiTheme) => cb(theme);
+    ipcRenderer.on(IpcChannels.effectiveUiThemeChanged, handler);
+    return () => ipcRenderer.removeListener(IpcChannels.effectiveUiThemeChanged, handler);
   },
 
   getShowBorder(): Promise<boolean> {
@@ -201,8 +209,11 @@ const petAPI = {
     ipcRenderer.send(IpcChannels.openReleasePage);
   },
 
-  getHistorySummary(): Promise<HistorySummary> {
-    return ipcRenderer.invoke(IpcChannels.getHistorySummary);
+  getHistorySummaryForYear(year: number): Promise<HistorySummary> {
+    return ipcRenderer.invoke(IpcChannels.getHistorySummaryForYear, year);
+  },
+  getHistoryYears(): Promise<number[]> {
+    return ipcRenderer.invoke(IpcChannels.getHistoryYears);
   },
   getBestTrackForDay(date: string): Promise<BestTrack | null> {
     return ipcRenderer.invoke(IpcChannels.getBestTrackForDay, date);
@@ -218,6 +229,18 @@ const petAPI = {
     const handler = (_e: unknown, color: string) => cb(color);
     ipcRenderer.on(IpcChannels.borderColorChanged, handler);
     return () => ipcRenderer.removeListener(IpcChannels.borderColorChanged, handler);
+  },
+
+  getDiscName(): Promise<string> {
+    return ipcRenderer.invoke(IpcChannels.getDiscName);
+  },
+  setDiscName(name: string) {
+    ipcRenderer.send(IpcChannels.setDiscName, name);
+  },
+  onDiscNameChanged(cb: (name: string) => void) {
+    const handler = (_e: unknown, name: string) => cb(name);
+    ipcRenderer.on(IpcChannels.discNameChanged, handler);
+    return () => ipcRenderer.removeListener(IpcChannels.discNameChanged, handler);
   },
 
   getOpacity(): Promise<number> {
@@ -276,6 +299,12 @@ const petAPI = {
     },
     setVolume(percent: number): Promise<SpotifyResult<void>> {
       return ipcRenderer.invoke(IpcChannels.setVolume, percent);
+    },
+    setShuffle(enabled: boolean): Promise<SpotifyResult<void>> {
+      return ipcRenderer.invoke(IpcChannels.setShuffle, enabled);
+    },
+    setRepeat(mode: "off" | "context" | "track"): Promise<SpotifyResult<void>> {
+      return ipcRenderer.invoke(IpcChannels.setRepeat, mode);
     },
   },
 };

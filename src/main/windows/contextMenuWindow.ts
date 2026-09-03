@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
-const MENU_WIDTH = 180;
-const MENU_HEIGHT = 156;
+const MENU_WIDTH = 168;
+const MENU_HEIGHT = 122;
 
 let menuWindow: BrowserWindow | null = null;
 

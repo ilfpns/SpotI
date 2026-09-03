@@ -28,6 +28,8 @@ export const IpcChannels = {
   seek: "spotify:seek",
   getVolume: "spotify:get-volume",
   setVolume: "spotify:set-volume",
+  setShuffle: "spotify:set-shuffle",
+  setRepeat: "spotify:set-repeat",
 
   appQuit: "app:quit",
 
@@ -50,6 +52,8 @@ export const IpcChannels = {
   getUiTheme: "theme:get-ui-theme",
   setUiTheme: "theme:set-ui-theme",
   uiThemeChanged: "theme:ui-theme-changed",
+  getEffectiveUiTheme: "theme:get-effective-ui-theme",
+  effectiveUiThemeChanged: "theme:effective-ui-theme-changed",
 
   getShowBorder: "theme:get-show-border",
   setShowBorder: "theme:set-show-border",
@@ -58,6 +62,10 @@ export const IpcChannels = {
   getBorderColor: "theme:get-border-color",
   setBorderColor: "theme:set-border-color",
   borderColorChanged: "theme:border-color-changed",
+
+  getDiscName: "theme:get-disc-name",
+  setDiscName: "theme:set-disc-name",
+  discNameChanged: "theme:disc-name-changed",
 
   getOpacity: "settings:get-opacity",
   setOpacity: "settings:set-opacity",
@@ -90,7 +98,8 @@ export const IpcChannels = {
   getStartHidden: "settings:get-start-hidden",
   setStartHidden: "settings:set-start-hidden",
 
-  getHistorySummary: "history:get-summary",
+  getHistorySummaryForYear: "history:get-summary-for-year",
+  getHistoryYears: "history:get-years",
   getBestTrackForDay: "history:get-best-track-for-day",
 
   resetSettings: "settings:reset",

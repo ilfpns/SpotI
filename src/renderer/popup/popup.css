@@ -103,7 +103,7 @@ body {
 
 .np-row {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 16px;
   flex: 1;
   min-height: 0;
@@ -212,7 +212,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 18px;
+  gap: 8px;
 }
 
 .control-btn {
@@ -226,7 +226,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 120ms ease;
+  transition: background 120ms ease, color 120ms ease;
 }
 
 .control-btn svg {
@@ -236,6 +236,25 @@ body {
 
 .control-btn:hover {
   background: rgba(var(--ink), 0.1);
+}
+
+/* Shuffle/repeat — smaller and flanking the three main transport buttons,
+   sized to still fit the popup's narrow control column with 5 buttons. */
+.control-btn[data-action="shuffle"],
+.control-btn[data-action="repeat"] {
+  width: 22px;
+  height: 22px;
+}
+
+.control-btn[data-action="shuffle"] svg,
+.control-btn[data-action="repeat"] svg {
+  width: 13px;
+  height: 13px;
+}
+
+.control-btn.active {
+  background: rgba(var(--ink), 0.14);
+  color: var(--font-color);
 }
 
 .control-btn-primary {

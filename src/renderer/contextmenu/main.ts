@@ -2,8 +2,8 @@ import { initI18n, t } from "../i18nClient";
 
 await initI18n();
 
-document.documentElement.dataset.theme = await window.petAPI.getUiTheme();
-window.petAPI.onUiThemeChanged((theme) => {
+document.documentElement.dataset.theme = await window.petAPI.getEffectiveUiTheme();
+window.petAPI.onEffectiveUiThemeChanged((theme) => {
   document.documentElement.dataset.theme = theme;
 });
 

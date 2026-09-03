@@ -1,4 +1,5 @@
 import { t, onLocaleChange } from "../i18nClient";
+import { RAINBOW_PRESETS } from "../../shared/theme";
 
 /** Builds a `.toggle` switch inside `root`. */
 export function createToggle(root: HTMLElement, initial: boolean, onChange: (value: boolean) => void) {
@@ -36,5 +37,54 @@ export function createSegmented<T extends string>(
     current = target.dataset.value as T;
     render();
     onChange(current);
+  });
+}
+
+/** A row of preset swatches + a custom color-wheel trigger, generic over which color it's editing. */
+export function initColorPicker(
+  presetsId: string,
+  wheelId: string,
+  getColor: () => Promise<string>,
+  setColor: (color: string) => void,
+  onExternalChange: (cb: (color: string) => void) => void,
+) {
+  const presetsEl = document.getElementById(presetsId) as HTMLElement;
+  const wheelInput = document.getElementById(wheelId) as HTMLInputElement;
+
+  getColor().then((initial) => {
+    let currentColor = initial;
+
+    function render() {
+      presetsEl.innerHTML = RAINBOW_PRESETS.map(
+        (color) => `
+          <button
+            class="swatch ${color.toLowerCase() === currentColor.toLowerCase() ? "selected" : ""}"
+            data-color="${color}"
+            style="background:${color}"
+          ></button>
+        `,
+      ).join("");
+      wheelInput.value = currentColor;
+    }
+
+    function choose(color: string) {
+      currentColor = color;
+      setColor(color);
+      render();
+    }
+
+    presetsEl.addEventListener("click", (e) => {
+      const target = (e.target as HTMLElement).closest<HTMLElement>("[data-color]");
+      if (!target) return;
+      choose(target.dataset.color!);
+    });
+
+    wheelInput.addEventListener("input", () => choose(wheelInput.value));
+
+    render();
+    onExternalChange((color) => {
+      currentColor = color;
+      render();
+    });
   });
 }

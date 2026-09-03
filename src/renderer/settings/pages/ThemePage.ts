@@ -1,54 +1,5 @@
-import { RAINBOW_PRESETS, type UiTheme } from "../../../shared/theme";
-import { createSegmented, createToggle } from "../uiControls";
-
-/** A row of preset swatches + a custom color-wheel trigger, generic over which color it's editing. */
-function initColorPicker(
-  presetsId: string,
-  wheelId: string,
-  getColor: () => Promise<string>,
-  setColor: (color: string) => void,
-  onExternalChange: (cb: (color: string) => void) => void,
-) {
-  const presetsEl = document.getElementById(presetsId) as HTMLElement;
-  const wheelInput = document.getElementById(wheelId) as HTMLInputElement;
-
-  getColor().then((initial) => {
-    let currentColor = initial;
-
-    function render() {
-      presetsEl.innerHTML = RAINBOW_PRESETS.map(
-        (color) => `
-          <button
-            class="swatch ${color.toLowerCase() === currentColor.toLowerCase() ? "selected" : ""}"
-            data-color="${color}"
-            style="background:${color}"
-          ></button>
-        `,
-      ).join("");
-      wheelInput.value = currentColor;
-    }
-
-    function choose(color: string) {
-      currentColor = color;
-      setColor(color);
-      render();
-    }
-
-    presetsEl.addEventListener("click", (e) => {
-      const target = (e.target as HTMLElement).closest<HTMLElement>("[data-color]");
-      if (!target) return;
-      choose(target.dataset.color!);
-    });
-
-    wheelInput.addEventListener("input", () => choose(wheelInput.value));
-
-    render();
-    onExternalChange((color) => {
-      currentColor = color;
-      render();
-    });
-  });
-}
+import { type UiThemePreference } from "../../../shared/theme";
+import { createSegmented, createToggle, initColorPicker } from "../uiControls";
 
 export async function initThemePage() {
   initColorPicker(
@@ -67,21 +18,14 @@ export async function initThemePage() {
     (cb) => window.petAPI.onLabelColorChanged(cb),
   );
 
-  initColorPicker(
-    "case-color-presets",
-    "case-color-wheel-input",
-    () => window.petAPI.getCaseColor(),
-    (c) => window.petAPI.setCaseColor(c),
-    (cb) => window.petAPI.onCaseColorChanged(cb),
-  );
-
   const uiThemeRoot = document.getElementById("ui-theme-segmented") as HTMLElement;
   const current = await window.petAPI.getUiTheme();
-  createSegmented<UiTheme>(
+  createSegmented<UiThemePreference>(
     uiThemeRoot,
     [
       { value: "dark", labelKey: "uiTheme.dark" },
       { value: "light", labelKey: "uiTheme.light" },
+      { value: "system", labelKey: "uiTheme.system" },
     ],
     current,
     (next) => window.petAPI.setUiTheme(next),

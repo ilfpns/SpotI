@@ -29,6 +29,12 @@
             </svg>
             <span data-i18n="nav.theme"></span>
           </button>
+          <button class="nav-item" data-page="case">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4a2 2 0 00-2 2v12a2 2 0 002 2h9a2 2 0 002-2V6a2 2 0 00-2-2H4zm9 2v12H4V6h9zM16 9h4v10h-4V9z" />
+            </svg>
+            <span data-i18n="nav.case"></span>
+          </button>
           <button class="nav-item" data-page="history">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
               <path
@@ -216,17 +222,6 @@
           </div>
 
           <div class="card">
-            <div class="card-title" data-i18n="card.caseColor.title"></div>
-            <div class="card-desc" data-i18n="card.caseColor.desc"></div>
-            <div class="swatch-row">
-              <div id="case-color-presets" class="swatch-list"></div>
-              <label class="color-wheel-button" title="Custom color">
-                <input id="case-color-wheel-input" type="color" />
-              </label>
-            </div>
-          </div>
-
-          <div class="card">
             <div class="row">
               <div class="row-text">
                 <div class="row-title" data-i18n="card.border.title"></div>
@@ -240,6 +235,27 @@
                 <input id="border-color-wheel-input" type="color" />
               </label>
             </div>
+          </div>
+        </section>
+
+        <section class="page" data-page="case" hidden>
+          <h1 data-i18n="page.case.title"></h1>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.caseColor.title"></div>
+            <div class="card-desc" data-i18n="card.caseColor.desc"></div>
+            <div class="swatch-row">
+              <div id="case-color-presets" class="swatch-list"></div>
+              <label class="color-wheel-button" title="Custom color">
+                <input id="case-color-wheel-input" type="color" />
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" data-i18n="card.discName.title"></div>
+            <div class="card-desc" data-i18n="card.discName.desc"></div>
+            <input id="disc-name-input" type="text" class="text-input" maxlength="7" placeholder="SPOTI" />
           </div>
         </section>
 
@@ -280,6 +296,15 @@
           <div class="card history-heatmap-card">
             <div class="history-heatmap-header">
               <div class="card-title" data-i18n="history.heatmap.title"></div>
+              <div id="history-year-select" class="select select-compact">
+                <button class="select-trigger" type="button">
+                  <span class="select-trigger-label"></span>
+                  <svg class="select-chevron" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 10l5 5 5-5z" />
+                  </svg>
+                </button>
+                <div class="select-menu"></div>
+              </div>
             </div>
 
             <div class="heatmap-2d-row">

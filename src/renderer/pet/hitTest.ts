@@ -1,6 +1,16 @@
-export function setupInteraction(el: Element, onDragChange: (dragging: boolean) => void) {
+// A pointer that moves less than this many screen pixels between down and
+// up reads as a click, not a drag — real mouse input is never perfectly
+// still, so 0px would misclassify almost every deliberate click as a drag.
+const CLICK_MOVE_THRESHOLD_PX = 4;
+
+export function setupInteraction(
+  el: Element,
+  onDragChange: (dragging: boolean) => void,
+  onClick?: () => void,
+) {
   let isInteractive = false;
   let dragging = false;
+  let didMove = false;
   let dragStartScreenX = 0;
   let dragStartScreenY = 0;
   let dragStartWinX = 0;
@@ -41,18 +51,26 @@ export function setupInteraction(el: Element, onDragChange: (dragging: boolean) 
     window.petAPI.forceShowPopup();
     const start = await window.petAPI.getPosition();
     dragging = true;
+    didMove = false;
     dragStartScreenX = pe.screenX;
     dragStartScreenY = pe.screenY;
     dragStartWinX = start.x;
     dragStartWinY = start.y;
     el.setPointerCapture(pe.pointerId);
-    onDragChange(true);
   });
 
   window.addEventListener("pointermove", (e) => {
     if (!dragging) return;
     const dx = e.screenX - dragStartScreenX;
     const dy = e.screenY - dragStartScreenY;
+    // Only declared an actual drag (and only then does onDragChange(true)
+    // fire) once real movement happens — mirrors the onDragChange(false)/
+    // onClick() split on release, so "dragging" toggles true/false in pairs
+    // instead of firing true for a plain click that never followed up.
+    if (!didMove && Math.hypot(dx, dy) > CLICK_MOVE_THRESHOLD_PX) {
+      didMove = true;
+      onDragChange(true);
+    }
     window.petAPI.moveTo(dragStartWinX + dx, dragStartWinY + dy);
   });
 
@@ -64,8 +82,12 @@ export function setupInteraction(el: Element, onDragChange: (dragging: boolean) 
     } catch {
       /* already released */
     }
-    window.petAPI.savePosition();
-    onDragChange(false);
+    if (didMove) {
+      window.petAPI.savePosition();
+      onDragChange(false);
+    } else {
+      onClick?.();
+    }
   });
 
   el.addEventListener("contextmenu", (e: Event) => {

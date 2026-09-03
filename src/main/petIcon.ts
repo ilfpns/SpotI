@@ -1,6 +1,6 @@
 import { BrowserWindow, nativeImage, type NativeImage } from "electron";
 import { getPetSvgMarkup } from "../shared/petSvg";
-import { getLabelColor, getCaseColor, getShowBorder } from "./themeStore";
+import { getLabelColor, getCaseColor, getShowBorder, getBorderColor, getDiscName } from "./themeStore";
 
 const ICON_SIZE = 128;
 
@@ -31,7 +31,7 @@ export function getPetIcon(): Promise<NativeImage> {
     const html = `<!doctype html><html><head><style>
       html,body{margin:0;padding:0;width:${ICON_SIZE}px;height:${ICON_SIZE}px;background:transparent;}
       svg{width:100%;height:100%;display:block;}
-    </style></head><body>${getPetSvgMarkup(getLabelColor(), getCaseColor(), getShowBorder())}</body></html>`;
+    </style></head><body>${getPetSvgMarkup(getLabelColor(), getCaseColor(), getShowBorder(), getBorderColor(), getDiscName())}</body></html>`;
 
     await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
     const image = await win.webContents.capturePage();

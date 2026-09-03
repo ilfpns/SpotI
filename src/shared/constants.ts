@@ -31,6 +31,3 @@ export const POPUP_DISMISS_DELAY_MS: Record<HoverDelay, number> = {
   slow: 150,
 };
 export const DEFAULT_HOVER_DELAY: HoverDelay = "normal";
-
-/** How many trailing days the listening-history heatmap covers (52 weeks). */
-export const HISTORY_DAYS_WINDOW = 364;

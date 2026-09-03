@@ -2,13 +2,11 @@ import { app } from "electron";
 import { join } from "node:path";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import type { BestTrack, DaySummary, HistorySummary } from "../shared/types";
-import { HISTORY_DAYS_WINDOW } from "../shared/constants";
 
-// Keep some slack past the heatmap's own display window so a day just past
-// it doesn't get pruned mid-query, but still bound how much the file (and
-// the in-memory cache kept alive for the app's whole session) can grow —
-// otherwise every day of every track ever played stays in RAM forever.
-const RETENTION_DAYS = HISTORY_DAYS_WINDOW + 30;
+// The per-year heatmap view (see getHistorySummaryForYear) needs several
+// years of history to actually have years to switch between — still
+// bounded, so a day of every track ever played doesn't stay in RAM forever.
+const RETENTION_DAYS = 5 * 365 + 30;
 
 interface TrackBucket {
   title: string | null;
@@ -121,17 +119,32 @@ export function recordListening(
   scheduleFlush();
 }
 
-function daySummaries(days: number): DaySummary[] {
+// Jan 1 through Dec 31 of the given year — or through today, for the
+// current year, since there's no listening data for the future.
+function daySummariesForYear(year: number): DaySummary[] {
   const store = load();
-  const result: DaySummary[] = [];
   const today = new Date();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
+  const isCurrentYear = year === today.getFullYear();
+  const end = isCurrentYear ? today : new Date(year, 11, 31);
+
+  const result: DaySummary[] = [];
+  const d = new Date(year, 0, 1);
+  while (d <= end) {
     const key = dateKey(d);
     result.push({ date: key, totalMs: store.days[key]?.totalMs ?? 0 });
+    d.setDate(d.getDate() + 1);
   }
   return result;
+}
+
+/** Calendar years worth offering in a year switcher — every year with at least one recorded day, plus the current year even if it's still empty. */
+export function getHistoryYears(): number[] {
+  const store = load();
+  const years = new Set<number>([new Date().getFullYear()]);
+  for (const key of Object.keys(store.days)) {
+    years.add(Number(key.slice(0, 4)));
+  }
+  return [...years].sort((a, b) => b - a);
 }
 
 export function getBestTrackForDay(date: string): BestTrack | null {
@@ -148,9 +161,7 @@ export function getBestTrackForDay(date: string): BestTrack | null {
   return best;
 }
 
-export function getHistorySummary(days: number): HistorySummary {
-  const summaries = daySummaries(days);
-
+function summarize(summaries: DaySummary[]): HistorySummary {
   const totalMs = summaries.reduce((sum, d) => sum + d.totalMs, 0);
   const thisWeekMs = summaries.slice(-7).reduce((sum, d) => sum + d.totalMs, 0);
 
@@ -180,4 +191,8 @@ export function getHistorySummary(days: number): HistorySummary {
   }
 
   return { days: summaries, totalMs, thisWeekMs, bestDay, averageMsPerDay, longestStreakDays, currentStreakDays };
+}
+
+export function getHistorySummaryForYear(year: number): HistorySummary {
+  return summarize(daySummariesForYear(year));
 }

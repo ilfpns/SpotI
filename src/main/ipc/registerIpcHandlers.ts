@@ -1,4 +1,4 @@
-import { ipcMain, app, shell, BrowserWindow } from "electron";
+import { ipcMain, app, shell, BrowserWindow, nativeTheme } from "electron";
 import { IpcChannels } from "../../shared/ipcChannels";
 import * as authService from "../spotify/authService";
 import * as spotifyApiClient from "../spotify/spotifyApiClient";
@@ -21,10 +21,13 @@ import {
   setFontColor,
   getUiTheme,
   setUiTheme,
+  getEffectiveUiTheme,
   getShowBorder,
   setShowBorder,
   getBorderColor,
   setBorderColor,
+  getDiscName,
+  setDiscName,
 } from "../themeStore";
 import { invalidatePetIconCache, getPetIcon } from "../petIcon";
 import { PET_SIZE_PX, type PetSize, type PollingSpeed } from "../../shared/constants";
@@ -52,11 +55,18 @@ import {
   setPetPosition,
 } from "../appSettingsStore";
 import { refreshMediaKeys } from "../mediaKeys";
-import { DEFAULT_UI_THEME, DEFAULT_SHOW_BORDER, DEFAULT_BORDER_COLOR } from "../../shared/theme";
-import type { UiTheme } from "../../shared/theme";
-import { getHistorySummary, getBestTrackForDay } from "../listeningHistoryStore";
 import {
-  HISTORY_DAYS_WINDOW,
+  DEFAULT_UI_THEME,
+  DEFAULT_SHOW_BORDER,
+  DEFAULT_BORDER_COLOR,
+  DEFAULT_LABEL_COLOR,
+  DEFAULT_CASE_COLOR,
+  DEFAULT_FONT_COLOR,
+  DEFAULT_DISC_NAME,
+} from "../../shared/theme";
+import type { UiThemePreference } from "../../shared/theme";
+import { getHistorySummaryForYear, getHistoryYears, getBestTrackForDay } from "../listeningHistoryStore";
+import {
   DEFAULT_POLLING_SPEED,
   DEFAULT_HOVER_DELAY,
   type HoverDelay,
@@ -119,6 +129,16 @@ export function registerIpcHandlers() {
   });
   ipcMain.handle(IpcChannels.getVolume, () => spotifyApiClient.getVolume());
   ipcMain.handle(IpcChannels.setVolume, (_e, percent: number) => spotifyApiClient.setVolume(percent));
+  ipcMain.handle(IpcChannels.setShuffle, async (_e, enabled: boolean) => {
+    const result = await spotifyApiClient.setShuffle(enabled);
+    pollNow();
+    return result;
+  });
+  ipcMain.handle(IpcChannels.setRepeat, async (_e, mode: "off" | "context" | "track") => {
+    const result = await spotifyApiClient.setRepeat(mode);
+    pollNow();
+    return result;
+  });
 
   ipcMain.on(IpcChannels.setIgnoreMouseEvents, (_e, ignore: boolean) => {
     getPetWindow().setIgnoreMouseEvents(ignore, { forward: true });
@@ -215,12 +235,27 @@ export function registerIpcHandlers() {
   });
 
   ipcMain.handle(IpcChannels.getUiTheme, () => getUiTheme());
+  ipcMain.handle(IpcChannels.getEffectiveUiTheme, () => getEffectiveUiTheme());
 
-  ipcMain.on(IpcChannels.setUiTheme, (_e, theme: UiTheme) => {
+  function broadcastEffectiveUiTheme() {
+    const effective = getEffectiveUiTheme();
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(IpcChannels.effectiveUiThemeChanged, effective);
+    }
+  }
+
+  ipcMain.on(IpcChannels.setUiTheme, (_e, theme: UiThemePreference) => {
     setUiTheme(theme);
     for (const win of BrowserWindow.getAllWindows()) {
       win.webContents.send(IpcChannels.uiThemeChanged, theme);
     }
+    broadcastEffectiveUiTheme();
+  });
+
+  // Only matters while the preference is "system" — that's the only case
+  // where the OS flipping dark/light should change anything on its own.
+  nativeTheme.on("updated", () => {
+    if (getUiTheme() === "system") broadcastEffectiveUiTheme();
   });
 
   ipcMain.handle(IpcChannels.getShowBorder, () => getShowBorder());
@@ -288,28 +323,39 @@ export function registerIpcHandlers() {
     getPetTrayIconSetter()?.(icon);
   });
 
+  ipcMain.handle(IpcChannels.getDiscName, () => getDiscName());
+  ipcMain.on(IpcChannels.setDiscName, async (_e, name: string) => {
+    setDiscName(name);
+    const sanitized = getDiscName();
+    invalidatePetIconCache();
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(IpcChannels.discNameChanged, sanitized);
+    }
+    const icon = await getPetIcon();
+    getPetTrayIconSetter()?.(icon);
+  });
+
   ipcMain.handle(IpcChannels.getOpacity, () => getOpacity());
   ipcMain.on(IpcChannels.setOpacity, (_e, percent: number) => {
     setOpacity(percent);
     applyPetOpacity();
   });
 
-  ipcMain.handle(IpcChannels.getHistorySummary, () => getHistorySummary(HISTORY_DAYS_WINDOW));
+  ipcMain.handle(IpcChannels.getHistorySummaryForYear, (_e, year: number) => getHistorySummaryForYear(year));
+  ipcMain.handle(IpcChannels.getHistoryYears, () => getHistoryYears());
   ipcMain.handle(IpcChannels.getBestTrackForDay, (_e, date: string) => getBestTrackForDay(date));
 
-  // The reset target values are the ones explicitly requested for this
-  // button, not necessarily each setting's fresh-install default (e.g. the
-  // colors reset to pure white and the language resets to English, not the
-  // fresh-install off-white/Korean defaults).
+  // Colors and border color reset to the app's own shipped defaults
+  // (shared/theme.ts) — locale and pet size reset to the explicitly
+  // requested English/medium rather than the fresh-install Korean default.
   ipcMain.handle(IpcChannels.resetSettings, async () => {
     const RESET_LOCALE: Locale = "en";
-    const RESET_COLOR = "#ffffff";
     const RESET_PET_SIZE: PetSize = "medium";
 
     setLocale(RESET_LOCALE);
-    setLabelColor(RESET_COLOR);
-    setCaseColor(RESET_COLOR);
-    setFontColor(RESET_COLOR);
+    setLabelColor(DEFAULT_LABEL_COLOR);
+    setCaseColor(DEFAULT_CASE_COLOR);
+    setFontColor(DEFAULT_FONT_COLOR);
     setUiTheme(DEFAULT_UI_THEME);
     setShowBorder(DEFAULT_SHOW_BORDER);
     setPetSize(RESET_PET_SIZE);
@@ -325,16 +371,18 @@ export function registerIpcHandlers() {
     setNotificationSound(true);
     setStartHidden(false);
     setBorderColor(DEFAULT_BORDER_COLOR);
+    setDiscName(DEFAULT_DISC_NAME);
     setOpacity(100);
     applyPetOpacity();
 
     invalidatePetIconCache();
     for (const win of BrowserWindow.getAllWindows()) {
       win.webContents.send(IpcChannels.localeChanged, RESET_LOCALE);
-      win.webContents.send(IpcChannels.labelColorChanged, RESET_COLOR);
-      win.webContents.send(IpcChannels.caseColorChanged, RESET_COLOR);
-      win.webContents.send(IpcChannels.fontColorChanged, RESET_COLOR);
+      win.webContents.send(IpcChannels.labelColorChanged, DEFAULT_LABEL_COLOR);
+      win.webContents.send(IpcChannels.caseColorChanged, DEFAULT_CASE_COLOR);
+      win.webContents.send(IpcChannels.fontColorChanged, DEFAULT_FONT_COLOR);
       win.webContents.send(IpcChannels.uiThemeChanged, DEFAULT_UI_THEME);
+      win.webContents.send(IpcChannels.effectiveUiThemeChanged, getEffectiveUiTheme());
       win.webContents.send(IpcChannels.showBorderChanged, DEFAULT_SHOW_BORDER);
       win.webContents.send(IpcChannels.spinAnimationChanged, true);
       win.webContents.send(IpcChannels.borderColorChanged, DEFAULT_BORDER_COLOR);

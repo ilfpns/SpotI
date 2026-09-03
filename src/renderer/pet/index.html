@@ -19,6 +19,20 @@
         height: 100%;
         display: block;
       }
+      /* Click the pet to slide the sleeve fully off (revealing the whole
+         LP) — click again to slide it back on. */
+      #pet-case {
+        transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      #pet-root.revealed #pet-case {
+        transform: translateX(-42px);
+      }
+      /* Rotation itself is driven from JS (main.ts), not CSS animation, so
+         the disc can freeze exactly where it stopped and pick back up from
+         there instead of resetting to 0deg on every toggle. */
+      #pet-disc-group {
+        transform-origin: 39px 24px;
+      }
     </style>
   </head>
   <body>

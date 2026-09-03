@@ -645,6 +645,21 @@ body {
   margin-bottom: 0;
 }
 
+.select-compact {
+  max-width: 92px;
+  flex-shrink: 0;
+}
+
+.select-compact .select-trigger {
+  padding: 6px 8px;
+}
+
+.select-compact .select-menu {
+  left: auto;
+  right: 0;
+  min-width: 92px;
+}
+
 .heatmap-2d-row {
   display: flex;
   gap: 6px;
@@ -690,6 +705,56 @@ body {
 
 .heatmap-cell.selected {
   box-shadow: inset 0 0 0 1.5px var(--text);
+}
+
+/* Custom heatmap-cell tooltip, replacing the plain native title attribute. */
+.heatmap-tooltip {
+  position: fixed;
+  z-index: 100;
+  background: var(--bg-menu);
+  border: 1px solid rgba(var(--ink), 0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 12px 28px var(--shadow);
+  pointer-events: none;
+  min-width: 120px;
+}
+
+.heatmap-tooltip-date {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.heatmap-tooltip-duration {
+  font-size: 11.5px;
+  color: rgba(var(--ink), 0.55);
+  margin-top: 1px;
+}
+
+.heatmap-tooltip-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(var(--ink), 0.1);
+}
+
+.heatmap-tooltip-art {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(var(--ink), 0.1);
+  flex-shrink: 0;
+}
+
+.heatmap-tooltip-track span {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
 }
 
 .heatmap-legend {

@@ -21,6 +21,8 @@ export interface NowPlayingState {
   albumArtUrl: string | null;
   progressMs: number | null;
   durationMs: number | null;
+  shuffleState: boolean;
+  repeatState: "off" | "context" | "track";
 }
 
 export interface AuthStatus {

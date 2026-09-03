@@ -1,4 +1,4 @@
-import { app } from "electron";
+import { app, nativeTheme } from "electron";
 import { join } from "node:path";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import {
@@ -8,16 +8,20 @@ import {
   DEFAULT_UI_THEME,
   DEFAULT_SHOW_BORDER,
   DEFAULT_BORDER_COLOR,
+  DEFAULT_DISC_NAME,
+  sanitizeDiscName,
   type UiTheme,
+  type UiThemePreference,
 } from "../shared/theme";
 
 interface StoredTheme {
   labelColor: string;
   caseColor: string;
   fontColor: string;
-  uiTheme: UiTheme;
+  uiTheme: UiThemePreference;
   showBorder: boolean;
   borderColor: string;
+  discName: string;
 }
 
 function filePath(): string {
@@ -30,8 +34,8 @@ function isHexColor(value: unknown): value is string {
   return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value);
 }
 
-function isUiTheme(value: unknown): value is UiTheme {
-  return value === "light" || value === "dark";
+function isUiTheme(value: unknown): value is UiThemePreference {
+  return value === "light" || value === "dark" || value === "system";
 }
 
 function load(): StoredTheme {
@@ -48,6 +52,7 @@ function load(): StoredTheme {
         uiTheme: isUiTheme(parsed?.uiTheme) ? parsed.uiTheme : DEFAULT_UI_THEME,
         showBorder: typeof parsed?.showBorder === "boolean" ? parsed.showBorder : DEFAULT_SHOW_BORDER,
         borderColor: isHexColor(parsed?.borderColor) ? parsed.borderColor : DEFAULT_BORDER_COLOR,
+        discName: typeof parsed?.discName === "string" ? sanitizeDiscName(parsed.discName) : DEFAULT_DISC_NAME,
       };
       return cached;
     } catch {
@@ -62,6 +67,7 @@ function load(): StoredTheme {
     uiTheme: DEFAULT_UI_THEME,
     showBorder: DEFAULT_SHOW_BORDER,
     borderColor: DEFAULT_BORDER_COLOR,
+    discName: DEFAULT_DISC_NAME,
   };
   return cached;
 }
@@ -97,13 +103,20 @@ export function setFontColor(color: string): void {
   persist();
 }
 
-export function getUiTheme(): UiTheme {
+export function getUiTheme(): UiThemePreference {
   return load().uiTheme;
 }
-export function setUiTheme(theme: UiTheme): void {
+export function setUiTheme(theme: UiThemePreference): void {
   if (!isUiTheme(theme)) return;
   load().uiTheme = theme;
   persist();
+}
+
+/** The preference resolved to an actual dark/light value, following the OS setting when the preference is "system". */
+export function getEffectiveUiTheme(): UiTheme {
+  const pref = getUiTheme();
+  if (pref !== "system") return pref;
+  return nativeTheme.shouldUseDarkColors ? "dark" : "light";
 }
 
 export function getShowBorder(): boolean {
@@ -120,5 +133,13 @@ export function getBorderColor(): string {
 export function setBorderColor(color: string): void {
   if (!isHexColor(color)) return;
   load().borderColor = color;
+  persist();
+}
+
+export function getDiscName(): string {
+  return load().discName;
+}
+export function setDiscName(name: string): void {
+  load().discName = sanitizeDiscName(name);
   persist();
 }

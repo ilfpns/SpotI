@@ -82,6 +82,8 @@ export function getNowPlaying(): Promise<SpotifyResult<NowPlayingState | null>> 
     const body = json as {
       is_playing: boolean;
       progress_ms: number | null;
+      shuffle_state: boolean;
+      repeat_state: "off" | "context" | "track";
       item: {
         id: string;
         name: string;
@@ -101,6 +103,8 @@ export function getNowPlaying(): Promise<SpotifyResult<NowPlayingState | null>> 
       albumArtUrl: body.item.album.images[0]?.url ?? null,
       progressMs: body.progress_ms,
       durationMs: body.item.duration_ms,
+      shuffleState: body.shuffle_state,
+      repeatState: body.repeat_state,
     };
   });
 }
@@ -154,6 +158,20 @@ export function setVolume(percent: number): Promise<SpotifyResult<void>> {
     const { status } = await spotifyFetch(`/me/player/volume?volume_percent=${clamped}`, {
       method: "PUT",
     });
+    assertOkOrThrow(status);
+  });
+}
+
+export function setShuffle(enabled: boolean): Promise<SpotifyResult<void>> {
+  return callWithErrorMapping(async () => {
+    const { status } = await spotifyFetch(`/me/player/shuffle?state=${enabled}`, { method: "PUT" });
+    assertOkOrThrow(status);
+  });
+}
+
+export function setRepeat(mode: "off" | "context" | "track"): Promise<SpotifyResult<void>> {
+  return callWithErrorMapping(async () => {
+    const { status } = await spotifyFetch(`/me/player/repeat?state=${mode}`, { method: "PUT" });
     assertOkOrThrow(status);
   });
 }
