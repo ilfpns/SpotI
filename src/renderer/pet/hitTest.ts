@@ -64,6 +64,7 @@ export function setupInteraction(el: Element, onDragChange: (dragging: boolean) 
     } catch {
       /* already released */
     }
+    window.petAPI.savePosition();
     onDragChange(false);
   });
 

@@ -5,6 +5,7 @@ import type { Locale } from "../shared/i18n";
 import type { UiTheme } from "../shared/theme";
 import type { PetSize, PollingSpeed, HoverDelay } from "../shared/constants";
 import type { BestTrack, HistorySummary } from "../shared/types";
+import type { UpdateCheckResult } from "../main/updateChecker";
 
 const petAPI = {
   setIgnoreMouseEvents(ignore: boolean) {
@@ -16,13 +17,16 @@ const petAPI = {
   getPosition(): Promise<{ x: number; y: number }> {
     return ipcRenderer.invoke(IpcChannels.getPosition);
   },
+  savePosition() {
+    ipcRenderer.send(IpcChannels.savePosition);
+  },
   forceShowPopup() {
     ipcRenderer.send(IpcChannels.forceShowPopup);
   },
   showContextMenu() {
     ipcRenderer.send(IpcChannels.showContextMenu);
   },
-  contextMenuAction(action: "settings" | "quit") {
+  contextMenuAction(action: "settings" | "quit" | "openSpotify") {
     ipcRenderer.send(IpcChannels.contextMenuAction, action);
   },
   onPopupAppear(cb: (side: "above" | "below") => void) {
@@ -188,6 +192,13 @@ const petAPI = {
 
   resetSettings(): Promise<void> {
     return ipcRenderer.invoke(IpcChannels.resetSettings);
+  },
+
+  checkForUpdate(): Promise<UpdateCheckResult | null> {
+    return ipcRenderer.invoke(IpcChannels.checkForUpdate);
+  },
+  openReleasePage() {
+    ipcRenderer.send(IpcChannels.openReleasePage);
   },
 
   getHistorySummary(): Promise<HistorySummary> {

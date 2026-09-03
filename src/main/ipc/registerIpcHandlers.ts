@@ -4,6 +4,7 @@ import * as authService from "../spotify/authService";
 import * as spotifyApiClient from "../spotify/spotifyApiClient";
 import { getPetWindow, resizePetWindow, currentPetSizePx, applyPetOpacity } from "../windows/petWindow";
 import { getSpotifyClientId, setSpotifyClientId } from "../spotify/config";
+import { checkForUpdate } from "../updateChecker";
 import { getPopupWindow } from "../windows/popupWindow";
 import { showSettingsWindow } from "../windows/settingsWindow";
 import { showContextMenuWindow, hideContextMenuWindow } from "../windows/contextMenuWindow";
@@ -48,6 +49,7 @@ import {
   setStartHidden,
   getOpacity,
   setOpacity,
+  setPetPosition,
 } from "../appSettingsStore";
 import { refreshMediaKeys } from "../mediaKeys";
 import { DEFAULT_UI_THEME, DEFAULT_SHOW_BORDER, DEFAULT_BORDER_COLOR } from "../../shared/theme";
@@ -75,6 +77,12 @@ export function registerIpcHandlers() {
   // can't use this to open an arbitrary URL.
   ipcMain.on(IpcChannels.openSpotifyDashboard, () => {
     shell.openExternal("https://developer.spotify.com/dashboard");
+  });
+
+  ipcMain.handle(IpcChannels.checkForUpdate, () => checkForUpdate());
+  // Same fixed-destination pattern as the Spotify dashboard link above.
+  ipcMain.on(IpcChannels.openReleasePage, () => {
+    shell.openExternal("https://github.com/ilfpns/SpotI/releases/latest");
   });
 
   ipcMain.handle(IpcChannels.logout, () => {
@@ -135,14 +143,28 @@ export function registerIpcHandlers() {
     return { x, y };
   });
 
+  // Fired once at the end of a drag (not on every pointermove) — persisting
+  // on every move would mean a synchronous disk write dozens of times per
+  // drag gesture.
+  ipcMain.on(IpcChannels.savePosition, () => {
+    const win = getPetWindow();
+    if (win.isDestroyed()) return;
+    const [x, y] = win.getPosition();
+    setPetPosition(x, y);
+  });
+
   ipcMain.on(IpcChannels.forceShowPopup, () => forceShowPopup());
 
   ipcMain.on(IpcChannels.showContextMenu, () => showContextMenuWindow());
 
-  ipcMain.on(IpcChannels.contextMenuAction, (_e, action: "settings" | "quit") => {
+  ipcMain.on(IpcChannels.contextMenuAction, (_e, action: "settings" | "quit" | "openSpotify") => {
     hideContextMenuWindow();
     if (action === "settings") showSettingsWindow();
     else if (action === "quit") app.quit();
+    // The spotify: URI scheme is registered by the Spotify desktop client
+    // itself: this launches it if it isn't running, or just brings the
+    // existing window to the front if it already is — no extra logic needed.
+    else if (action === "openSpotify") shell.openExternal("spotify:");
   });
 
   ipcMain.on(IpcChannels.appQuit, () => app.quit());

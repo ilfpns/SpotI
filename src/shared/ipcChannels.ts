@@ -2,6 +2,7 @@ export const IpcChannels = {
   setIgnoreMouseEvents: "pet:set-ignore-mouse-events",
   moveTo: "pet:move-to",
   getPosition: "pet:get-position",
+  savePosition: "pet:save-position",
   forceShowPopup: "popup:force-show",
   showContextMenu: "pet:show-context-menu",
   contextMenuAction: "pet:context-menu-action",
@@ -15,6 +16,9 @@ export const IpcChannels = {
   getSpotifyClientId: "spotify:get-client-id",
   setSpotifyClientId: "spotify:set-client-id",
   openSpotifyDashboard: "spotify:open-dashboard",
+
+  checkForUpdate: "app:check-for-update",
+  openReleasePage: "app:open-release-page",
 
   nowPlayingChanged: "spotify:now-playing-changed",
   play: "spotify:play",

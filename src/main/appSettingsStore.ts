@@ -20,6 +20,7 @@ interface StoredSettings {
   notificationSound: boolean;
   startHidden: boolean;
   opacity: number;
+  petPosition: { x: number; y: number } | null;
 }
 
 const DEFAULTS: StoredSettings = {
@@ -32,6 +33,7 @@ const DEFAULTS: StoredSettings = {
   notificationSound: true,
   startHidden: false,
   opacity: 100,
+  petPosition: null,
 };
 
 function filePath(): string {
@@ -67,6 +69,12 @@ function load(): StoredSettings {
           typeof parsed?.opacity === "number" && parsed.opacity >= 20 && parsed.opacity <= 100
             ? parsed.opacity
             : DEFAULTS.opacity,
+        petPosition:
+          parsed?.petPosition &&
+          typeof parsed.petPosition.x === "number" &&
+          typeof parsed.petPosition.y === "number"
+            ? { x: parsed.petPosition.x, y: parsed.petPosition.y }
+            : DEFAULTS.petPosition,
       };
       return cached;
     } catch {
@@ -153,6 +161,14 @@ export function setOpacity(percent: number): void {
   // Never let it go fully (or near-)invisible — there'd be no way to find
   // and drag it back short of quitting and editing the settings file.
   load().opacity = Math.max(20, Math.min(100, Math.round(percent)));
+  persist();
+}
+
+export function getPetPosition(): { x: number; y: number } | null {
+  return load().petPosition;
+}
+export function setPetPosition(x: number, y: number): void {
+  load().petPosition = { x: Math.round(x), y: Math.round(y) };
   persist();
 }
 

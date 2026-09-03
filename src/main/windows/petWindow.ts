@@ -2,7 +2,7 @@ import { BrowserWindow, screen } from "electron";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { PET_SIZE_PX } from "../../shared/constants";
-import { getPetSize, getStartHidden, getOpacity } from "../appSettingsStore";
+import { getPetSize, getStartHidden, getOpacity, getPetPosition } from "../appSettingsStore";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -26,8 +26,18 @@ export function createPetWindow(): BrowserWindow {
   // a conventional spot for a desktop mascot to sit until dragged elsewhere.
   const size = currentPetSizePx();
   const workArea = screen.getPrimaryDisplay().workArea;
-  const initialX = workArea.x + workArea.width - size - 24;
-  const initialY = workArea.y + workArea.height - size - 24;
+  let initialX = workArea.x + workArea.width - size - 24;
+  let initialY = workArea.y + workArea.height - size - 24;
+
+  // Restore wherever the user last dragged it, as long as that point still
+  // falls on the current primary display's work area (a saved spot from a
+  // monitor that's since been unplugged would otherwise strand it off-screen).
+  const saved = getPetPosition();
+  if (saved && saved.x >= workArea.x && saved.x <= workArea.x + workArea.width - size &&
+      saved.y >= workArea.y && saved.y <= workArea.y + workArea.height - size) {
+    initialX = saved.x;
+    initialY = saved.y;
+  }
 
   const win = new BrowserWindow({
     x: initialX,
