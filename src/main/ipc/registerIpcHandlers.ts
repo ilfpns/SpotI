@@ -76,7 +76,13 @@ import {
   DEFAULT_CASE_SHAPE,
 } from "../../shared/theme";
 import type { UiThemePreference, CaseShape } from "../../shared/theme";
-import { getHistorySummaryForYear, getHistoryYears, getBestTrackForDay, getTrackStats } from "../listeningHistoryStore";
+import {
+  getHistorySummaryForYear,
+  getHistoryYears,
+  getBestTrackForDay,
+  getRecentlyPlayed,
+  getTopAlbumsForWeek,
+} from "../listeningHistoryStore";
 import {
   DEFAULT_POLLING_SPEED,
   DEFAULT_HOVER_DELAY,
@@ -147,6 +153,12 @@ export function registerIpcHandlers() {
     pollNow();
     return result;
   });
+  // Same cached-state reuse as getVolume below, exposed directly for
+  // one-off reads (e.g. Settings' Recent page checking on load which
+  // track — if any — is playing right now) that don't want to wait for
+  // the next onNowPlayingChanged broadcast, which may not come for a
+  // while if nothing's actually changing.
+  ipcMain.handle(IpcChannels.getNowPlaying, () => getLastKnownState());
   // Reuses the last polling tick's already-fetched state (the pet polls
   // /me/player continuously anyway) instead of a fresh network round trip —
   // falls back to a live fetch only for the rare case Settings is opened
@@ -167,13 +179,6 @@ export function registerIpcHandlers() {
     pollNow();
     return result;
   });
-
-  ipcMain.handle(IpcChannels.isTrackSaved, (_e, trackId: string) => spotifyApiClient.isTrackSaved(trackId));
-  ipcMain.handle(IpcChannels.saveTrack, (_e, trackId: string) => spotifyApiClient.saveTrack(trackId));
-  ipcMain.handle(IpcChannels.removeSavedTrack, (_e, trackId: string) => spotifyApiClient.removeSavedTrack(trackId));
-  ipcMain.handle(IpcChannels.getSavedTracks, (_e, limit: number, offset: number) =>
-    spotifyApiClient.getSavedTracks(limit, offset),
-  );
 
   ipcMain.on(IpcChannels.moveTo, (_e, pos: { x: number; y: number }) => {
     const win = getPetWindow();
@@ -431,7 +436,8 @@ export function registerIpcHandlers() {
   ipcMain.handle(IpcChannels.getHistorySummaryForYear, (_e, year: number) => getHistorySummaryForYear(year));
   ipcMain.handle(IpcChannels.getHistoryYears, () => getHistoryYears());
   ipcMain.handle(IpcChannels.getBestTrackForDay, (_e, date: string) => getBestTrackForDay(date));
-  ipcMain.handle(IpcChannels.getTrackStats, (_e, trackId: string) => getTrackStats(trackId));
+  ipcMain.handle(IpcChannels.getRecentlyPlayed, (_e, limit: number) => getRecentlyPlayed(limit));
+  ipcMain.handle(IpcChannels.getTopAlbumsForWeek, (_e, limit: number) => getTopAlbumsForWeek(limit));
 
   // Colors and border color reset to the app's own shipped defaults
   // (shared/theme.ts) — locale and pet size reset to the explicitly

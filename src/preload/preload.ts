@@ -4,7 +4,7 @@ import type { AuthStatus, NowPlayingState, SpotifyResult } from "../shared/types
 import type { Locale } from "../shared/i18n";
 import type { UiTheme, UiThemePreference, CaseShape } from "../shared/theme";
 import type { PetSize, PollingSpeed, HoverDelay, CaseSlideSpeed, DiscSpinSpeed } from "../shared/constants";
-import type { BestTrack, HistorySummary, SavedTracksPage } from "../shared/types";
+import type { BestTrack, HistorySummary, RecentPlay, TopAlbum } from "../shared/types";
 import type { UpdateCheckResult } from "../main/updateChecker";
 
 const petAPI = {
@@ -239,8 +239,11 @@ const petAPI = {
   getBestTrackForDay(date: string): Promise<BestTrack | null> {
     return ipcRenderer.invoke(IpcChannels.getBestTrackForDay, date);
   },
-  getTrackStats(trackId: string): Promise<{ totalMs: number; playCount: number }> {
-    return ipcRenderer.invoke(IpcChannels.getTrackStats, trackId);
+  getRecentlyPlayed(limit: number): Promise<RecentPlay[]> {
+    return ipcRenderer.invoke(IpcChannels.getRecentlyPlayed, limit);
+  },
+  getTopAlbumsForWeek(limit: number): Promise<TopAlbum[]> {
+    return ipcRenderer.invoke(IpcChannels.getTopAlbumsForWeek, limit);
   },
 
   getBorderColor(): Promise<string> {
@@ -327,6 +330,9 @@ const petAPI = {
       ipcRenderer.on(IpcChannels.nowPlayingChanged, handler);
       return () => ipcRenderer.removeListener(IpcChannels.nowPlayingChanged, handler);
     },
+    getNowPlaying(): Promise<NowPlayingState | null> {
+      return ipcRenderer.invoke(IpcChannels.getNowPlaying);
+    },
     play(): Promise<SpotifyResult<void>> {
       return ipcRenderer.invoke(IpcChannels.play);
     },
@@ -353,18 +359,6 @@ const petAPI = {
     },
     setRepeat(mode: "off" | "context" | "track"): Promise<SpotifyResult<void>> {
       return ipcRenderer.invoke(IpcChannels.setRepeat, mode);
-    },
-    isTrackSaved(trackId: string): Promise<SpotifyResult<boolean>> {
-      return ipcRenderer.invoke(IpcChannels.isTrackSaved, trackId);
-    },
-    saveTrack(trackId: string): Promise<SpotifyResult<void>> {
-      return ipcRenderer.invoke(IpcChannels.saveTrack, trackId);
-    },
-    removeSavedTrack(trackId: string): Promise<SpotifyResult<void>> {
-      return ipcRenderer.invoke(IpcChannels.removeSavedTrack, trackId);
-    },
-    getSavedTracks(limit: number, offset: number): Promise<SpotifyResult<SavedTracksPage>> {
-      return ipcRenderer.invoke(IpcChannels.getSavedTracks, limit, offset);
     },
   },
 };

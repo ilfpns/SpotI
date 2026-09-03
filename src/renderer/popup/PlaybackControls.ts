@@ -90,7 +90,7 @@ export class PlaybackControls {
     this.repeatButton.classList.toggle("active", mode !== "off");
   }
 
-  showError(error?: string) {
+  private showError(error?: string) {
     this.statusEl.textContent = t(`error.${error ?? "unknown_error"}`);
     this.statusEl.hidden = false;
     setTimeout(() => (this.statusEl.hidden = true), 3000);

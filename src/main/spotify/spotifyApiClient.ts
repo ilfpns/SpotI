@@ -1,5 +1,5 @@
 import { ensureAccessToken } from "./authService";
-import type { NowPlayingState, SavedTracksPage, SpotifyErrorCode, SpotifyResult } from "../../shared/types";
+import type { NowPlayingState, SpotifyErrorCode, SpotifyResult } from "../../shared/types";
 
 const API_BASE = "https://api.spotify.com/v1";
 
@@ -89,7 +89,7 @@ export function getNowPlaying(): Promise<SpotifyResult<NowPlayingState | null>> 
         id: string;
         name: string;
         artists: { name: string }[];
-        album: { images: { url: string }[] };
+        album: { id: string; name: string; images: { url: string }[] };
         duration_ms: number;
       } | null;
     };
@@ -102,6 +102,8 @@ export function getNowPlaying(): Promise<SpotifyResult<NowPlayingState | null>> 
       title: body.item.name,
       artist: body.item.artists.map((a) => a.name).join(", "),
       albumArtUrl: body.item.album.images[0]?.url ?? null,
+      albumId: body.item.album.id,
+      albumName: body.item.album.name,
       progressMs: body.progress_ms,
       durationMs: body.item.duration_ms,
       shuffleState: body.shuffle_state,
@@ -115,12 +117,6 @@ function assertOkOrThrow(status: number) {
   if (status !== 200 && status !== 204) {
     throw { code: mapErrorStatus(status) as SpotifyErrorCode };
   }
-}
-
-/** Same as assertOkOrThrow, but for the Liked Songs endpoints specifically — those never require Premium, so a 403 there means the session's token predates the user-library-read/modify scopes, not that the account lacks Premium. */
-function assertLibraryOkOrThrow(status: number) {
-  if (status === 403) throw { code: "missing_scope" as SpotifyErrorCode };
-  assertOkOrThrow(status);
 }
 
 export function play(): Promise<SpotifyResult<void>> {
@@ -181,61 +177,6 @@ export function setRepeat(mode: "off" | "context" | "track"): Promise<SpotifyRes
   return callWithErrorMapping(async () => {
     const { status } = await spotifyFetch(`/me/player/repeat?state=${mode}`, { method: "PUT" });
     assertOkOrThrow(status);
-  });
-}
-
-export function isTrackSaved(trackId: string): Promise<SpotifyResult<boolean>> {
-  return callWithErrorMapping(async () => {
-    const { status, json } = await spotifyFetch(`/me/tracks/contains?ids=${encodeURIComponent(trackId)}`);
-    assertLibraryOkOrThrow(status);
-    return Array.isArray(json) && json[0] === true;
-  });
-}
-
-export function saveTrack(trackId: string): Promise<SpotifyResult<void>> {
-  return callWithErrorMapping(async () => {
-    const { status } = await spotifyFetch(`/me/tracks?ids=${encodeURIComponent(trackId)}`, { method: "PUT" });
-    assertLibraryOkOrThrow(status);
-  });
-}
-
-export function removeSavedTrack(trackId: string): Promise<SpotifyResult<void>> {
-  return callWithErrorMapping(async () => {
-    const { status } = await spotifyFetch(`/me/tracks?ids=${encodeURIComponent(trackId)}`, { method: "DELETE" });
-    assertLibraryOkOrThrow(status);
-  });
-}
-
-export function getSavedTracks(limit: number, offset: number): Promise<SpotifyResult<SavedTracksPage>> {
-  return callWithErrorMapping(async () => {
-    const { status, json } = await spotifyFetch(`/me/tracks?limit=${limit}&offset=${offset}`);
-    assertLibraryOkOrThrow(status);
-    const body = json as {
-      items: {
-        added_at: string;
-        track: {
-          id: string;
-          name: string;
-          artists: { name: string }[];
-          album: { images: { url: string }[] };
-        };
-      }[];
-      total: number;
-      limit: number;
-      offset: number;
-    };
-    return {
-      items: body.items.map((it) => ({
-        trackId: it.track.id,
-        title: it.track.name,
-        artist: it.track.artists.map((a) => a.name).join(", "),
-        albumArtUrl: it.track.album.images[0]?.url ?? null,
-        addedAt: it.added_at,
-      })),
-      total: body.total,
-      limit: body.limit,
-      offset: body.offset,
-    };
   });
 }
 

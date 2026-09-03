@@ -51,13 +51,13 @@
             </svg>
             <span data-i18n="nav.history"></span>
           </button>
-          <button class="nav-item" data-page="favorite">
+          <button class="nav-item" data-page="recent">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
               <path
-                d="M12 20.5s-7.5-4.6-10-9.3C.5 7.8 2.4 4.5 6 4.5c2.1 0 3.6 1.1 4.5 2.6.4.7 1.6.7 2 0C13.4 5.6 14.9 4.5 17 4.5c3.6 0 5.5 3.3 4 6.7-2.5 4.7-10 9.3-10 9.3z"
+                d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 10.59l4.24 4.24-1.41 1.41L11 13V6h2v6.59z"
               />
             </svg>
-            <span data-i18n="nav.favorite"></span>
+            <span data-i18n="nav.recent"></span>
           </button>
           <button class="nav-item" data-page="spotify">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -388,13 +388,19 @@
           </div>
         </section>
 
-        <section class="page" data-page="favorite" hidden>
-          <h1 data-i18n="page.favorite.title"></h1>
+        <section class="page" data-page="recent" hidden>
+          <h1 data-i18n="page.recent.title"></h1>
 
           <div class="card">
-            <div id="favorite-list" class="favorite-list"></div>
-            <div id="favorite-empty" class="card-desc" data-i18n="favorite.empty" hidden></div>
-            <button id="favorite-load-more" class="secondary-button" data-i18n="favorite.loadMore" hidden></button>
+            <div class="card-title" data-i18n="recent.title"></div>
+            <div id="recent-list" class="recent-list"></div>
+            <div id="recent-empty" class="card-desc" data-i18n="recent.empty" hidden></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" data-i18n="topAlbums.title"></div>
+            <div id="top-albums-grid" class="top-albums-grid"></div>
+            <div id="top-albums-empty" class="card-desc" data-i18n="topAlbums.empty" hidden></div>
           </div>
         </section>
 

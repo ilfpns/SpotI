@@ -1,17 +1,24 @@
 import { app } from "electron";
 import { join } from "node:path";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import type { BestTrack, DaySummary, HistorySummary } from "../shared/types";
+import type { BestTrack, DaySummary, HistorySummary, RecentPlay, TopAlbum } from "../shared/types";
 
 // The per-year heatmap view (see getHistorySummaryForYear) needs several
 // years of history to actually have years to switch between — still
 // bounded, so a day of every track ever played doesn't stay in RAM forever.
 const RETENTION_DAYS = 5 * 365 + 30;
 
+// How many entries the "recently played" feed keeps — well past the 10 the
+// UI shows, so scrolling further back (if ever added) has real data, but
+// still bounded.
+const RECENT_PLAYS_LIMIT = 100;
+
 interface TrackBucket {
   title: string | null;
   artist: string | null;
   albumArtUrl: string | null;
+  albumId: string | null;
+  albumName: string | null;
   ms: number;
   /** How many times this specific track started playing this day — optional on read since days recorded before this field existed won't have it. */
   playCount?: number;
@@ -26,6 +33,8 @@ interface DayBucket {
 
 interface StoredHistory {
   days: Record<string, DayBucket>;
+  /** Newest first — capped to RECENT_PLAYS_LIMIT. Optional on read for stores saved before this field existed. */
+  recentPlays?: RecentPlay[];
 }
 
 function filePath(): string {
@@ -61,7 +70,13 @@ function load(): StoredHistory {
   if (existsSync(path)) {
     try {
       const parsed = JSON.parse(readFileSync(path, "utf-8"));
-      cached = { days: parsed?.days && typeof parsed.days === "object" ? parsed.days : {} };
+      const recentPlays: RecentPlay[] = Array.isArray(parsed?.recentPlays) ? parsed.recentPlays : [];
+      cached = {
+        days: parsed?.days && typeof parsed.days === "object" ? parsed.days : {},
+        // One-time cleanup for adjacent-duplicate rows written before the
+        // recordTrackStart() de-dup guard existed.
+        recentPlays: recentPlays.filter((p, i) => i === 0 || p.trackId !== recentPlays[i - 1].trackId),
+      };
       pruneOldDays(cached);
       return cached;
     } catch {
@@ -69,7 +84,7 @@ function load(): StoredHistory {
     }
   }
 
-  cached = { days: {} };
+  cached = { days: {}, recentPlays: [] };
   return cached;
 }
 
@@ -104,6 +119,8 @@ export function recordListening(
   title: string | null,
   artist: string | null,
   albumArtUrl: string | null,
+  albumId: string | null,
+  albumName: string | null,
   deltaMs: number,
 ): void {
   if (deltaMs <= 0) return;
@@ -115,42 +132,90 @@ export function recordListening(
   // than on every tick — a long-running session should still stay bounded.
   if (isNewDay) pruneOldDays(store);
   day.totalMs += deltaMs;
-  const track = (day.tracks[trackId] ??= { title, artist, albumArtUrl, ms: 0 });
+  const track = (day.tracks[trackId] ??= { title, artist, albumArtUrl, albumId, albumName, ms: 0 });
   track.ms += deltaMs;
   track.title = title;
   track.artist = artist;
   track.albumArtUrl = albumArtUrl;
+  track.albumId = albumId;
+  track.albumName = albumName;
   scheduleFlush();
 }
 
-/** Call once per genuine track change while playing (not on every poll tick) — see pollingService's own trackChanged detection, which this reuses. */
-export function recordTrackStart(trackId: string, title: string | null, artist: string | null, albumArtUrl: string | null): void {
+/** Call once per genuine track change while playing (not on every poll tick) — see pollingService's own trackChanged detection, which this reuses. Also appends to the recently-played feed. */
+export function recordTrackStart(
+  trackId: string,
+  title: string | null,
+  artist: string | null,
+  albumArtUrl: string | null,
+  albumId: string | null,
+  albumName: string | null,
+): void {
   const store = load();
   const key = dateKey(new Date());
   const isNewDay = !store.days[key];
   const day = (store.days[key] ??= { totalMs: 0, playCount: 0, tracks: {} });
   if (isNewDay) pruneOldDays(store);
   day.playCount = (day.playCount ?? 0) + 1;
-  const track = (day.tracks[trackId] ??= { title, artist, albumArtUrl, ms: 0, playCount: 0 });
+  const track = (day.tracks[trackId] ??= { title, artist, albumArtUrl, albumId, albumName, ms: 0, playCount: 0 });
   track.playCount = (track.playCount ?? 0) + 1;
   track.title = title;
   track.artist = artist;
   track.albumArtUrl = albumArtUrl;
+  track.albumId = albumId;
+  track.albumName = albumName;
+
+  const recentPlays = (store.recentPlays ??= []);
+  // A track briefly switching away and back (a quick skip-and-return, or
+  // Spotify's own state blipping to something else for one poll) still
+  // counts as a genuine trackChanged twice — but showing the same song
+  // twice back-to-back in a "recently played" feed reads as a bug, not
+  // useful history, so only the timestamp on the existing top entry moves
+  // rather than adding a second row for it.
+  if (recentPlays[0]?.trackId === trackId) {
+    recentPlays[0] = { trackId, title, artist, albumArtUrl, playedAt: Date.now() };
+  } else {
+    recentPlays.unshift({ trackId, title, artist, albumArtUrl, playedAt: Date.now() });
+    if (recentPlays.length > RECENT_PLAYS_LIMIT) recentPlays.length = RECENT_PLAYS_LIMIT;
+  }
+
   scheduleFlush();
 }
 
-/** Lifetime totals for one track, summed across every stored day — used by the Favorite list to show how much a saved track has actually been listened to. */
-export function getTrackStats(trackId: string): { totalMs: number; playCount: number } {
+/** Most recent plays, newest first. */
+export function getRecentlyPlayed(limit: number): RecentPlay[] {
   const store = load();
-  let totalMs = 0;
-  let playCount = 0;
-  for (const day of Object.values(store.days)) {
-    const track = day.tracks[trackId];
-    if (!track) continue;
-    totalMs += track.ms;
-    playCount += track.playCount ?? 0;
+  return (store.recentPlays ?? []).slice(0, limit);
+}
+
+/** Albums ranked by total listening time over the last 7 days (today inclusive), grouped by albumId across every track credited to them. */
+export function getTopAlbumsForWeek(limit: number): TopAlbum[] {
+  const store = load();
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 6);
+  const cutoffKey = dateKey(cutoff);
+
+  const byAlbum = new Map<string, TopAlbum>();
+  for (const [dayKey, day] of Object.entries(store.days)) {
+    if (dayKey < cutoffKey) continue;
+    for (const track of Object.values(day.tracks)) {
+      if (!track.albumId) continue;
+      const existing = byAlbum.get(track.albumId);
+      if (existing) {
+        existing.ms += track.ms;
+      } else {
+        byAlbum.set(track.albumId, {
+          albumId: track.albumId,
+          albumName: track.albumName,
+          artist: track.artist,
+          albumArtUrl: track.albumArtUrl,
+          ms: track.ms,
+        });
+      }
+    }
   }
-  return { totalMs, playCount };
+
+  return [...byAlbum.values()].sort((a, b) => b.ms - a.ms).slice(0, limit);
 }
 
 // Jan 1 through Dec 31 of the given year — or through today, for the

@@ -117,6 +117,8 @@ async function tick() {
         nextState.title,
         nextState.artist,
         nextState.albumArtUrl,
+        nextState.albumId,
+        nextState.albumName,
         Math.min(elapsedSinceLastTick, MAX_LISTENING_CREDIT_MS),
       );
     }
@@ -135,7 +137,14 @@ async function tick() {
     if (changed) {
       broadcastNowPlaying(nextState);
       if (trackChanged && hasPolledOnce && nextState?.isPlaying) {
-        recordTrackStart(nextState.trackId!, nextState.title, nextState.artist, nextState.albumArtUrl);
+        recordTrackStart(
+          nextState.trackId!,
+          nextState.title,
+          nextState.artist,
+          nextState.albumArtUrl,
+          nextState.albumId,
+          nextState.albumName,
+        );
         void notifyTrackChanged(nextState);
       }
     }

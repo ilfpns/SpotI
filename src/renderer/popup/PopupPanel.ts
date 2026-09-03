@@ -44,8 +44,8 @@ export class PopupPanel {
     const controlsEl = this.authenticatedSection.querySelector(".np-controls") as HTMLElement;
     const progressEl = this.authenticatedSection.querySelector(".np-progress") as HTMLElement;
 
-    const playbackControls = new PlaybackControls(controlsEl);
-    new TrackInfo(discEl, metaEl, (error) => playbackControls.showError(error));
+    new TrackInfo(discEl, metaEl);
+    new PlaybackControls(controlsEl);
     new ProgressBar(progressEl);
 
     // Event delegation: renderConnectMessage() replaces this subtree's

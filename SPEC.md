@@ -6,9 +6,9 @@ Electron + TypeScript로 만든 데스크톱 Spotify 동반자 앱. 이 문서�
 ## 1. 개요
 
 - **형태**: 케이스에서 반쯤 꺼낸 LP 모양의 항상-위-표시(always-on-top),
-  프레임 없는 투명 창. 창 자체가 작아서(48-88px) 클릭통과는 쓰지 않고
-  항상 자기 자신의 영역을 그대로 캡처함 — 펫이 놓인 자리 밑의 아이콘/창이
-  실수로 클릭되는 일이 없음.
+  프레임 없는 투명 창. 창 자체가 작아서(48-176px, 4.1절의 크기 설정 참고)
+  클릭통과는 쓰지 않고 항상 자기 자신의 영역을 그대로 캡처함 — 펫이
+  놓인 자리 밑의 아이콘/창이 실수로 클릭되는 일이 없음.
 - **핵심 동작**: 드래그로 어디든 이동 가능. 마우스를 올리면(hover) 근처에
   현재 재생 정보 + 컨트롤 팝업이 나타남.
 - **인증**: 사용자 자신의 Spotify 앱 Client ID로 PKCE(Authorization Code
@@ -108,28 +108,15 @@ hidden` 상태를 명시적으로 관리(60ms 간격으로 커서 위치 폴링)
   다시 재생하면 그 각도부터 이어서 회전. DOM 엘리먼트도 재생/일시정지
   때마다 새로 만들지 않고 그대로 재사용해 회전 상태가 끊기지 않음.
 - Spotify 미연결 시 연결 버튼 표시.
-- 곡명 오른쪽에 하트 버튼 — Spotify의 실제 Liked Songs에 저장/제거
-  (`PUT`/`DELETE /me/tracks`). 클릭 시 낙관적으로 하트부터 빨갛게 채우고,
-  실패하면(그리고 그 사이 곡이 안 바뀌었으면) 되돌리고 오류 메시지를
-  보여줌(아래). 트랙이 바뀔 때마다 한 번씩만 `GET /me/tracks/contains`
-  로 저장 여부를 새로 확인. 설정 창을 열거나 하지는 않음 — 즐겨찾기
-  목록은 설정 → 즐겨찾기 탭에서 따로 확인(4.7절).
-  **Liked Songs API는 `user-library-modify`/`user-library-read` 스코프가
-  필요** — 이 기능을 추가하며 `SPOTIFY_SCOPES`에 새로 넣었으므로,
-  이전에 이미 로그인해 둔 계정은 Settings → Spotify에서 로그아웃 후
-  다시 연결해야 하트가 동작함(기존 리프레시 토큰은 새 스코프를 못
-  받아옴 — Spotify OAuth의 일반적인 동작).
-  - **전용 오류 코드(`missing_scope`)**: Liked Songs 엔드포인트(저장/
-    제거/확인/목록 4개 모두)의 403은 다른 재생 관련 403과 달리
-    `premium_required`로 매핑하지 않음 — Liked Songs는 애초에 Premium이
-    필요 없는 기능이라 그 라벨 자체가 사실과 다르고, 재연결이 필요하다는
-    걸 사용자가 알 방법이 없었음(하트가 그냥 조용히 원래대로 돌아갈
-    뿐). `assertLibraryOkOrThrow()`로 이 네 엔드포인트만 403을
-    `missing_scope`로 별도 매핑하고, 하트 클릭 실패 시
-    `PlaybackControls.showError()`(원래 재생 컨트롤 전용이던 걸
-    공개 메서드로 바꿔 재사용, `PopupPanel`이 생성 시점에 콜백으로
-    연결)로 "즐겨찾기 기능을 쓰려면 Spotify를 다시 연결해야 합니다..."
-    같은 구체적 안내를 보여줌.
+- **(제거됨) 곡명 옆 하트/즐겨찾기 버튼**: Spotify Liked Songs 연동으로
+  한 번 만들었다가 제거함 — `user-library-modify`/`user-library-read`
+  스코프가 필요해서 기존 로그인 세션은 재연결이 필요했고, 그 와중에
+  세션 자체가 Spotify의 실제 레이트리밋에 걸려 재생을 포함한 모든 API
+  호출이 한동안 막히는 일이 겹치면서(제 과도한 CDP 테스트 호출이 원인),
+  사용자가 기능 자체를 접기로 함. 대신 4.7절의 "최근 재생"/"이번 주
+  TOP 10 앨범"으로 대체 — 이 둘은 Spotify API를 전혀 새로 안 쓰고
+  기존에 이미 쌓고 있던 로컬 청취 기록(`listeningHistoryStore`)만
+  사용하므로 스코프 재연결도, 추가 API 호출도 필요 없음.
 
 ### 3.3 미디어 키
 
@@ -147,10 +134,10 @@ hidden` 상태를 명시적으로 관리(60ms 간격으로 커서 위치 폴링)
 | 볼륨 | Spotify API 직접 반영 (로컬 저장 없음) | — |
 | 불투명도 | `appSettingsStore` (`settings.json`) | 100 (최소 20으로 하한) |
 | 시작 시 자동 실행 | OS 로그인 항목(`app.setLoginItemSettings`) | false |
-| SpotI 크기 | `appSettingsStore` | medium(64px) |
+| SpotI 크기 | `appSettingsStore` | medium(64px) — small(48)/medium(64)/large(88)/**max(176, large의 2배)** |
 | 트랙 변경 알림 | `appSettingsStore` | true |
 | 알림 소리 | `appSettingsStore` | true |
-| 연동(폴링) 속도 | `appSettingsStore` | fast(200ms 활성/3000ms 유휴) |
+| 연동(폴링) 속도 | `appSettingsStore` | fast(200ms) — 팝업 표시 여부와 무관하게 항상 이 값 그대로 적용(7절 참고) |
 | 팝업 반응(소멸) 속도 | `appSettingsStore` | normal(60ms) |
 | 디스크 회전 애니메이션 | `appSettingsStore` | true |
 | 미디어 키 지원 | `appSettingsStore` | true |
@@ -265,8 +252,15 @@ Canvas API만 사용). 트랙이 바뀔 때마다(재생 중 상태 변화가 �
   감지를 그대로 재사용, 앱을 막 시작한 직후의 "첫 폴링"은 제외)마다
   하루치 전체 카운터와 그 트랙 자신의 카운터를 함께 1씩 올림
   (`listeningHistoryStore.recordTrackStart(trackId, ...)`) — 전자는
-  이 페이지의 "재생 횟수" 통계에, 후자는 4.7절 즐겨찾기 목록의 트랙별
-  통계(`getTrackStats(trackId)`)에 쓰임.
+  이 페이지의 "재생 횟수" 통계에, 후자는 "최근 재생" 피드에 한 줄
+  추가하고(4.7절) 앨범 집계에도 쓰임.
+- 같은 호출에서 트랙별로 앨범 정보(`albumId`/`albumName`)도 같이
+  저장함 — `NowPlayingState`에 새로 추가된 필드(Spotify의 `/me/player`
+  응답에 원래 있던 `item.album.id`/`item.album.name`을 그동안 안
+  쓰고 버리고 있었음)를 그대로 흘려보내는 것. 이 필드가 추가되기
+  전에 기록된 예전 트랙들은 자연히 이 값이 없고, 앨범 집계(4.7절)에서
+  그런 트랙은 조용히 제외됨 — 소급 적용은 안 하지만 별도 마이그레이션
+  없이도 안전하게 공존.
 
 ### 4.6 Spotify
 
@@ -280,18 +274,36 @@ Canvas API만 사용). 트랙이 바뀔 때마다(재생 중 상태 변화가 �
   조회해 semver 비교, 배포된 릴리즈가 아직 없으면 "확인할 수 없음"으로
   처리되는 게 정상 동작).
 
-### 4.7 즐겨찾기 (Favorite)
+### 4.7 최근 재생 (Recent)
 
-- 팝업의 하트 버튼(3.2절)으로 저장한 Spotify Liked Songs 목록을 보여줌
-  — 목록 자체는 로컬에 별도로 저장하지 않고 매번 `GET /me/tracks`를
-  페이지 단위(20개)로 불러와 항상 Spotify 쪽 실제 상태를 그대로 반영.
-  - 각 행: 앨범 아트, 곡명/아티스트, **재생 횟수·총 청취 시간**(로컬
-    `listeningHistoryStore.getTrackStats(trackId)` — 저장된 모든
-    날짜의 기록을 그 트랙 기준으로 합산, Spotify가 아니라 이 앱이
-    직접 재생을 관찰한 기록에서 나오는 값이라 실제로 SpotI로 들은
-    적 없는 곡은 0으로 표시됨), 제거 버튼(`DELETE /me/tracks`, 낙관적
-    으로 목록에서 먼저 지우고 실패하면 전체 재로딩으로 복구).
-  - "더 보기" 버튼으로 다음 페이지 로드.
+Spotify API를 추가로 쓰지 않고 전부 로컬 청취 기록(`listeningHistoryStore`,
+4.5절)만으로 채워지는 탭 — 새 스코프도, 재연결도 필요 없음.
+
+- **최근에 들은 곡 10개**: `listeningHistoryStore.recordTrackStart()`가
+  트랙이 바뀔 때마다 앞에 추가하는 별도 리스트(`recentPlays`, 최대
+  100개 보관, 오래된 것부터 자동 정리)에서 최신 10개를 가져옴
+  (`getRecentlyPlayed(10)`). 각 행: 앨범 아트, 곡명/아티스트, 오른쪽에
+  상대 시간("3분 전" 등 — `Intl.RelativeTimeFormat`으로 현재 언어에
+  맞게 자동 현지화) 또는 그 곡이 지금 실제로 재생 중이면 "현재 재생중"
+  (`spotify:get-now-playing` IPC로 로드 시 한 번 읽고, 이후엔
+  `onNowPlayingChanged` 구독으로 계속 최신 상태 유지 — 목록 맨 위
+  항목에만 적용, 같은 트랙이 목록 아래쪽에 또 있어도 거긴 그대로
+  상대 시간).
+  - **연속 중복 방지**: 같은 트랙이 짧은 간격을 두고 연속으로 다시
+    "시작"으로 감지되면(빠르게 skip 했다 되돌아오는 경우 등)
+    `recordTrackStart()`가 새 줄을 추가하지 않고 맨 위 항목의 시간만
+    갱신함 — 안 그러면 "최근 재생" 목록에 같은 곡이 바로 위아래로
+    두 번 뜨는 버그가 됨(실제로 한 번 발생해 발견). 이 가드가 생기기
+    전에 이미 기록된 인접 중복은 `history.json` 로드 시 한 번 정리됨.
+- **이번 주 많이 들은 앨범 TOP 10**: 최근 7일(오늘 포함)치 일별 기록을
+  훑어서 트랙마다 저장된 `albumId`로 묶고, 앨범별 누적 청취 시간(ms)
+  기준으로 정렬해 상위 10개를 가져옴(`getTopAlbumsForWeek(10)`) —
+  앨범 이름/아티스트/아트는 그 앨범에 속한 트랙 중 아무거나에서 가져옴
+  (같은 앨범이면 사실상 동일). `albumId`가 없는(4.5절 참고 — 이 필드가
+  생기기 전에 기록된) 트랙은 이 집계에서 자동으로 빠짐. 5열 그리드,
+  각 카드에 순위 배지.
+- 원래 있던 "즐겨찾기(Favorite)" 탭 자리를 대체함 — 자세한 경위는
+  3.2절 참고.
 
 ### 4.8 설정 초기화
 

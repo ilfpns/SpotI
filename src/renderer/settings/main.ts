@@ -6,7 +6,7 @@ import { initThemePage } from "./pages/ThemePage";
 import { initCasePage } from "./pages/CasePage";
 import { initAnimationPage } from "./pages/AnimationPage";
 import { initHistoryPage } from "./pages/HistoryPage";
-import { initFavoritePage } from "./pages/FavoritePage";
+import { initRecentPage } from "./pages/RecentPage";
 
 await initI18n();
 
@@ -91,4 +91,4 @@ initThemePage();
 initCasePage();
 initAnimationPage();
 initHistoryPage();
-initFavoritePage();
+initRecentPage();

@@ -44,6 +44,8 @@ function track(isPlaying: boolean): NowPlayingState {
     title: "Crying",
     artist: "BOYNEXTDOOR",
     albumArtUrl: null,
+    albumId: "a1",
+    albumName: "Album",
     progressMs: 1000,
     durationMs: 200_000,
     shuffleState: false,

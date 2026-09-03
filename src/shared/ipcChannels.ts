@@ -20,6 +20,7 @@ export const IpcChannels = {
   openReleasePage: "app:open-release-page",
 
   nowPlayingChanged: "spotify:now-playing-changed",
+  getNowPlaying: "spotify:get-now-playing",
   play: "spotify:play",
   pause: "spotify:pause",
   next: "spotify:next",
@@ -116,12 +117,8 @@ export const IpcChannels = {
   getHistorySummaryForYear: "history:get-summary-for-year",
   getHistoryYears: "history:get-years",
   getBestTrackForDay: "history:get-best-track-for-day",
-  getTrackStats: "history:get-track-stats",
+  getRecentlyPlayed: "history:get-recently-played",
+  getTopAlbumsForWeek: "history:get-top-albums-week",
 
   resetSettings: "settings:reset",
-
-  isTrackSaved: "spotify:is-track-saved",
-  saveTrack: "spotify:save-track",
-  removeSavedTrack: "spotify:remove-saved-track",
-  getSavedTracks: "spotify:get-saved-tracks",
 } as const;

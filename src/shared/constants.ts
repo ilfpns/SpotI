@@ -5,11 +5,6 @@ export const SPOTIFY_SCOPES = [
   "user-read-playback-state",
   "user-modify-playback-state",
   "user-read-currently-playing",
-  // Needed for the Favorite feature's PUT/DELETE/GET /me/tracks calls
-  // (save/remove/check Liked Songs) — without these, Spotify correctly
-  // rejects those calls with a 403 no matter what the client code does.
-  "user-library-modify",
-  "user-library-read",
 ].join(" ");
 
 export type PollingSpeed = "fast" | "normal";
@@ -19,11 +14,12 @@ export const POLLING_INTERVAL_ACTIVE_MS: Record<PollingSpeed, number> = {
 };
 export const DEFAULT_POLLING_SPEED: PollingSpeed = "fast";
 
-export type PetSize = "small" | "medium" | "large";
+export type PetSize = "small" | "medium" | "large" | "max";
 export const PET_SIZE_PX: Record<PetSize, number> = {
   small: 48,
   medium: 64,
   large: 88,
+  max: 176, // 2x large
 };
 export const DEFAULT_PET_SIZE: PetSize = "medium";
 

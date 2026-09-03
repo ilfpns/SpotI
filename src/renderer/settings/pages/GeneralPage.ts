@@ -173,6 +173,7 @@ function initPetSize() {
         { value: "small", labelKey: "size.small" },
         { value: "medium", labelKey: "size.medium" },
         { value: "large", labelKey: "size.large" },
+        { value: "max", labelKey: "size.max" },
       ],
       value,
       (next) => window.petAPI.setPetSize(next),

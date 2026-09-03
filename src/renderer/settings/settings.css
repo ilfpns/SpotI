@@ -812,13 +812,13 @@ body {
   margin-top: 4px;
 }
 
-.favorite-list {
+.recent-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.favorite-row {
+.recent-row {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -826,11 +826,11 @@ body {
   border-radius: 8px;
 }
 
-.favorite-row:hover {
+.recent-row:hover {
   background: rgba(var(--ink), 0.04);
 }
 
-.favorite-row-art {
+.recent-row-art {
   width: 44px;
   height: 44px;
   border-radius: 6px;
@@ -839,12 +839,12 @@ body {
   flex-shrink: 0;
 }
 
-.favorite-row-meta {
+.recent-row-meta {
   min-width: 0;
   flex: 1;
 }
 
-.favorite-row-title {
+.recent-row-title {
   font-size: 13.5px;
   font-weight: 600;
   overflow: hidden;
@@ -852,7 +852,7 @@ body {
   white-space: nowrap;
 }
 
-.favorite-row-artist {
+.recent-row-artist {
   font-size: 12px;
   color: rgba(var(--ink), 0.6);
   margin-top: 2px;
@@ -861,35 +861,77 @@ body {
   white-space: nowrap;
 }
 
-.favorite-row-stats {
+.recent-row-time {
   font-size: 11px;
   color: rgba(var(--ink), 0.45);
-  margin-top: 3px;
+  flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
 
-.favorite-remove-button {
-  background: transparent;
-  border: none;
-  color: #ff4d67;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
+.top-albums-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+.top-album-card {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background 120ms ease;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.favorite-remove-button svg {
-  width: 16px;
-  height: 16px;
+.top-album-art-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
 }
 
-.favorite-remove-button:hover {
-  background: rgba(255, 77, 103, 0.12);
+.top-album-art {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: rgba(var(--ink), 0.08);
+  object-fit: cover;
+  display: block;
+}
+
+.top-album-rank {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.top-album-name {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-album-artist {
+  font-size: 11px;
+  color: rgba(var(--ink), 0.6);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-album-time {
+  font-size: 10.5px;
+  color: rgba(var(--ink), 0.45);
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Simple label/value info rows (version info, etc). */

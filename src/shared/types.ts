@@ -4,13 +4,7 @@ export type SpotifyErrorCode =
   | "no_active_device"
   | "rate_limited"
   | "network_error"
-  | "unknown_error"
-  // A 403 specifically from the Liked Songs endpoints (isTrackSaved/
-  // saveTrack/removeSavedTrack/getSavedTracks) — those never require
-  // Premium, so mapping it to premium_required like a playback 403 would
-  // be actively wrong; it really means the current session's token
-  // predates the user-library-read/modify scopes and needs reconnecting.
-  | "missing_scope";
+  | "unknown_error";
 
 export interface SpotifyResult<T> {
   ok: boolean;
@@ -25,6 +19,8 @@ export interface NowPlayingState {
   title: string | null;
   artist: string | null;
   albumArtUrl: string | null;
+  albumId: string | null;
+  albumName: string | null;
   progressMs: number | null;
   durationMs: number | null;
   shuffleState: boolean;
@@ -65,18 +61,19 @@ export interface HistorySummary {
   playCount: number;
 }
 
-export interface SavedTrack {
+export interface RecentPlay {
   trackId: string;
   title: string | null;
   artist: string | null;
   albumArtUrl: string | null;
-  /** ISO timestamp from Spotify's own record of when the track was saved. */
-  addedAt: string;
+  /** Epoch ms — when this play was recorded locally (not Spotify's own timestamp). */
+  playedAt: number;
 }
 
-export interface SavedTracksPage {
-  items: SavedTrack[];
-  total: number;
-  limit: number;
-  offset: number;
+export interface TopAlbum {
+  albumId: string;
+  albumName: string | null;
+  artist: string | null;
+  albumArtUrl: string | null;
+  ms: number;
 }
