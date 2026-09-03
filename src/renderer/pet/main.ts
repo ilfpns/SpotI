@@ -1,5 +1,5 @@
 import { setupInteraction } from "./hitTest";
-import { getPetSvgMarkup, BORDER_STROKE_WIDTH } from "../../shared/petSvg";
+import { getPetSvgMarkup, BORDER_STROKE_WIDTH, contrastTextColor } from "../../shared/petSvg";
 
 const petRoot = document.getElementById("pet-root") as HTMLElement;
 
@@ -26,6 +26,7 @@ window.petAPI.onLabelColorChanged((color) => {
 });
 window.petAPI.onCaseColorChanged((color) => {
   document.getElementById("pet-case")?.setAttribute("fill", color);
+  document.getElementById("pet-disc-name")?.setAttribute("fill", contrastTextColor(color));
 });
 window.petAPI.onShowBorderChanged((show) => {
   const width = String(show ? BORDER_STROKE_WIDTH : 0);

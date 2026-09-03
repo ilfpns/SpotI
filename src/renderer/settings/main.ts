@@ -1,4 +1,4 @@
-import { getPetSvgMarkup, BORDER_STROKE_WIDTH } from "../../shared/petSvg";
+import { getPetSvgMarkup, BORDER_STROKE_WIDTH, contrastTextColor } from "../../shared/petSvg";
 import { initI18n, t, onLocaleChange } from "../i18nClient";
 import { initSpotifyPage } from "./pages/SpotifyPage";
 import { initGeneralPage } from "./pages/GeneralPage";
@@ -33,6 +33,7 @@ window.petAPI.onLabelColorChanged((color) => {
 });
 window.petAPI.onCaseColorChanged((color) => {
   document.getElementById("pet-case")?.setAttribute("fill", color);
+  document.getElementById("pet-disc-name")?.setAttribute("fill", contrastTextColor(color));
 });
 window.petAPI.onShowBorderChanged((show) => {
   const width = String(show ? BORDER_STROKE_WIDTH : 0);

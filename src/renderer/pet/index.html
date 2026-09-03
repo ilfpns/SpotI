@@ -19,12 +19,12 @@
         height: 100%;
         display: block;
       }
-      /* Click the pet to slide the sleeve fully off (revealing the whole
-         LP) — click again to slide it back on. */
-      #pet-case {
+      /* Click the pet to slide the sleeve (and its printed name) fully off,
+         revealing the whole LP — click again to slide it back on. */
+      #pet-case-group {
         transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
       }
-      #pet-root.revealed #pet-case {
+      #pet-root.revealed #pet-case-group {
         transform: translateX(-42px);
       }
       /* Rotation itself is driven from JS (main.ts), not CSS animation, so

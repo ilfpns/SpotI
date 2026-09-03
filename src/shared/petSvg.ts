@@ -8,6 +8,17 @@ function escapeXml(value: string): string {
   return value.replace(/&/g, "&amp;");
 }
 
+/** Picks readable text over an arbitrary user-chosen case color, since it's not fixed like the disc's own base fill. */
+export function contrastTextColor(hexColor: string): string {
+  const hex = hexColor.replace("#", "");
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return "rgba(255,255,255,0.85)";
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? "rgba(20,20,20,0.8)" : "rgba(255,255,255,0.85)";
+}
+
 /**
  * The pet's artwork as raw SVG markup — a single source of truth shared by
  * the pet renderer (injected into the DOM) and the main process (rasterized
@@ -57,13 +68,16 @@ export function getPetSvgMarkup(
       <line x1="30" y1="6" x2="46" y2="29" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round" opacity="0.16" />
       <line x1="27.5" y1="8.5" x2="40" y2="27" stroke="#ffffff" stroke-width="0.9" stroke-linecap="round" opacity="0.24" />
     </g>
-    <!-- optional custom name printed near the top of the disc, above the label -->
-    <text id="pet-disc-name" x="39" y="11" text-anchor="middle" font-family="Arial, sans-serif" font-size="5" font-weight="700" letter-spacing="0.3" fill="rgba(255,255,255,0.85)">${escapeXml(discName)}</text>
     <circle id="pet-label" cx="39" cy="24" r="7" fill="${labelColor}" />
     <circle cx="39" cy="24" r="2" fill="#141414" />
   </g>
-  <!-- sleeve, drawn on top so the disc reads as sliding out from behind it -->
-  <rect id="pet-case" x="3" y="3" width="36" height="42" rx="2" fill="${caseColor}" stroke="${borderColor}" stroke-width="${borderWidth}" />
+  <!-- sleeve, drawn on top so the disc reads as sliding out from behind it —
+       grouped with its own printed name so the text slides off together
+       with the case rather than staying behind on the disc. -->
+  <g id="pet-case-group">
+    <rect id="pet-case" x="3" y="3" width="36" height="42" rx="2" fill="${caseColor}" stroke="${borderColor}" stroke-width="${borderWidth}" />
+    <text id="pet-disc-name" x="21" y="26" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="5.5" font-weight="700" letter-spacing="0.3" fill="${contrastTextColor(caseColor)}">${escapeXml(discName)}</text>
+  </g>
 </svg>
 `.trim();
 }
