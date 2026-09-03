@@ -153,15 +153,24 @@ body {
 }
 
 .meta .title {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-weight: 700;
   font-size: 16px;
-  white-space: nowrap;
-  overflow: hidden;
 }
 
-.meta .title:has(.heart-button) {
-  padding-right: 20px;
+/* The heart's own flex item, sized by its own content, always keeps its
+   pixel space — flex gives each sibling an independent clipping boundary,
+   which a fixed-width padding reservation on a single shared box can't:
+   padding doesn't stop overflowing/animated content from painting into it,
+   only actual box separation does. */
+.meta .title-scroll {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .meta .title .title-text {
@@ -169,10 +178,7 @@ body {
 }
 
 .heart-button {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  flex-shrink: 0;
   background: transparent;
   border: none;
   padding: 0;
@@ -193,18 +199,18 @@ body {
 
 .heart-button:hover {
   color: #ff4d67;
-  transform: translateY(-50%) scale(1.12);
+  transform: scale(1.12);
 }
 
 .heart-button.active {
   color: #ff4d67;
 }
 
-.meta .title.marquee {
+.meta .title-scroll.marquee {
   text-align: left;
 }
 
-.meta .title.marquee .title-text {
+.meta .title-scroll.marquee .title-text {
   animation: title-marquee 6s ease-in-out infinite;
 }
 

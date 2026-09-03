@@ -3,9 +3,9 @@ import { createPetWindow, getPetWindow } from "./windows/petWindow";
 import { createPopupWindow, getPopupWindow } from "./windows/popupWindow";
 import { createTray } from "./trayMenu";
 import { registerIpcHandlers } from "./ipc/registerIpcHandlers";
-import { startPolling, setPollingActive } from "./spotify/pollingService";
+import { startPolling } from "./spotify/pollingService";
 import { tryRestoreSession, getAuthStatus } from "./spotify/authService";
-import { onPopupVisibilityChange, startPopupCursorWatcher } from "./popupController";
+import { startPopupCursorWatcher } from "./popupController";
 import { IpcChannels } from "../shared/ipcChannels";
 import { flushHistoryNow } from "./listeningHistoryStore";
 import { registerMediaKeys, unregisterMediaKeys } from "./mediaKeys";
@@ -57,7 +57,6 @@ function runApp() {
     registerIpcHandlers();
     startPolling();
 
-    onPopupVisibilityChange((visible) => setPollingActive(visible));
     startPopupCursorWatcher();
 
     void createTray();

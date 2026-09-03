@@ -12,8 +12,6 @@ export const SPOTIFY_SCOPES = [
   "user-library-read",
 ].join(" ");
 
-export const POLL_INTERVAL_IDLE_MS = 3_000;
-
 export type PollingSpeed = "fast" | "normal";
 export const POLLING_INTERVAL_ACTIVE_MS: Record<PollingSpeed, number> = {
   fast: 200,

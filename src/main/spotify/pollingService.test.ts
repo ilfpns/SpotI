@@ -23,7 +23,10 @@ vi.mock("electron", () => ({
   nativeImage: { createFromBuffer: () => ({}) },
 }));
 vi.mock("./spotifyApiClient", () => ({
-  getNowPlaying: () => state.getNowPlayingQueue.shift()!(),
+  // tick() always reschedules itself at the end, so an unmocked extra tick
+  // firing (e.g. from advancing fake timers further than a test explicitly
+  // queued responses for) must resolve gracefully rather than throw.
+  getNowPlaying: () => (state.getNowPlayingQueue.shift() ?? (async () => ({ ok: true, data: null })))(),
 }));
 vi.mock("../appSettingsStore", () => ({
   getNotifyTrackChange: () => false,

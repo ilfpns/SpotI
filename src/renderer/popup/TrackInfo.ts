@@ -177,10 +177,13 @@ export class TrackInfo {
       : "";
     this.metaEl.innerHTML = state
       ? `
-        <div class="title"><span class="title-text">${escapeHtml(state.title ?? t("popup.unknownTitle"))}</span>${heartMarkup}</div>
+        <div class="title">
+          <span class="title-scroll"><span class="title-text">${escapeHtml(state.title ?? t("popup.unknownTitle"))}</span></span>
+          ${heartMarkup}
+        </div>
         <div class="artist">${escapeHtml(state.artist ?? t("popup.unknownArtist"))}</div>
       `
-      : `<div class="title"><span class="title-text">${escapeHtml(t("popup.nothingPlaying"))}</span></div>`;
+      : `<div class="title"><span class="title-scroll"><span class="title-text">${escapeHtml(t("popup.nothingPlaying"))}</span></span></div>`;
 
     if (state?.trackId && state.trackId !== previousTrackId) {
       this.savedState = null;
@@ -192,19 +195,19 @@ export class TrackInfo {
     requestAnimationFrame(() => this.setupMarquee());
   }
 
-  /** Slides the title left-to-right instead of truncating when it's too wide to fit. */
+  /** Slides the title left-to-right instead of truncating when it's too wide to fit. Measured against .title-scroll (a real flex sibling of the heart button, sized to exclude it) rather than .title itself, so the scrolling text's available width never includes the heart's own space — a fixed-width reservation via padding wouldn't actually stop overflowing/animated content from painting into it, only flex's own per-item clipping does. */
   private setupMarquee() {
-    const titleEl = this.metaEl.querySelector(".title") as HTMLElement | null;
+    const scrollEl = this.metaEl.querySelector(".title-scroll") as HTMLElement | null;
     const textEl = this.metaEl.querySelector(".title-text") as HTMLElement | null;
-    if (!titleEl || !textEl) return;
+    if (!scrollEl || !textEl) return;
 
-    const overflowPx = textEl.scrollWidth - titleEl.clientWidth;
+    const overflowPx = textEl.scrollWidth - scrollEl.clientWidth;
     if (overflowPx > 2) {
-      titleEl.style.setProperty("--marquee-distance", `-${overflowPx}px`);
-      titleEl.classList.add("marquee");
+      scrollEl.style.setProperty("--marquee-distance", `-${overflowPx}px`);
+      scrollEl.classList.add("marquee");
     } else {
-      titleEl.classList.remove("marquee");
-      titleEl.style.removeProperty("--marquee-distance");
+      scrollEl.classList.remove("marquee");
+      scrollEl.style.removeProperty("--marquee-distance");
     }
   }
 }

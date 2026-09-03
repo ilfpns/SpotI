@@ -1,7 +1,7 @@
 import { BrowserWindow, Notification, nativeImage } from "electron";
 import { getNowPlaying } from "./spotifyApiClient";
 import { IpcChannels } from "../../shared/ipcChannels";
-import { POLL_INTERVAL_IDLE_MS, POLLING_INTERVAL_ACTIVE_MS } from "../../shared/constants";
+import { POLLING_INTERVAL_ACTIVE_MS, DEFAULT_POLLING_SPEED } from "../../shared/constants";
 import type { NowPlayingState } from "../../shared/types";
 import { getNotifyTrackChange, getPollingSpeed, getNotificationSound } from "../appSettingsStore";
 import { getLocale } from "../localeStore";
@@ -9,8 +9,7 @@ import { translate } from "../../shared/i18n";
 import { recordListening, recordTrackStart } from "../listeningHistoryStore";
 
 let timer: ReturnType<typeof setTimeout> | null = null;
-let currentIntervalMs = POLL_INTERVAL_IDLE_MS;
-let popupIsActive = false;
+let currentIntervalMs = POLLING_INTERVAL_ACTIVE_MS[DEFAULT_POLLING_SPEED];
 let lastState: NowPlayingState | null = null;
 let hasPolledOnce = false;
 let lastTickAt = Date.now();
@@ -145,12 +144,17 @@ async function tick() {
   timer = setTimeout(tick, currentIntervalMs);
 }
 
+// The polling-speed setting now governs the interval at all times, not just
+// while the popup happens to be open — it used to fall back to a fixed 3s
+// idle interval the rest of the time, which meant picking "fast" barely
+// mattered since the pet spends most of its time with the popup closed.
 function applyInterval() {
-  currentIntervalMs = popupIsActive ? POLLING_INTERVAL_ACTIVE_MS[getPollingSpeed()] : POLL_INTERVAL_IDLE_MS;
+  currentIntervalMs = POLLING_INTERVAL_ACTIVE_MS[getPollingSpeed()];
 }
 
 export function startPolling() {
   if (timer) return;
+  applyInterval(); // pick up the actually-saved speed, not just the default
   timer = setTimeout(tick, 0);
 }
 
@@ -185,11 +189,6 @@ export function pollNow(): Promise<void> {
 /** The most recent poll's state, if any — lets a one-off read (e.g. opening Settings) reuse it instead of a fresh network round trip. */
 export function getLastKnownState(): NowPlayingState | null {
   return lastState;
-}
-
-export function setPollingActive(active: boolean) {
-  popupIsActive = active;
-  applyInterval();
 }
 
 /** Call after the polling-speed setting changes so the currently running interval picks it up right away. */
