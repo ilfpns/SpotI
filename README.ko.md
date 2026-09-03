@@ -51,6 +51,12 @@
 - **`SpotI-<version>-portable.exe`** — 설치 과정도, 관리자 권한도 필요
   없이 더블클릭만 하면 바로 실행되는 단일 실행 파일
 
+> **Windows에서 `npm run dist` 중 "Cannot create symbolic link" 오류가
+> 나나요?** electron-builder가 자체 도구를 압축 해제하는 과정에서
+> 심볼릭 링크를 만들 권한이 필요합니다. **설정 → 개인정보 및 보안 →
+> 개발자용 → 개발자 모드**를 켜신 뒤 `npm run dist`를 다시 실행하세요
+> — 한 번만 켜두면 계속 유지됩니다.
+
 빌드된 앱을 실행하는 사람은 각자 설정 화면(위 4번 단계)에서 자신의
 Client ID를 입력하면 됩니다 — 빌드 안에 Spotify 관련 정보가 미리 담겨
 있지 않습니다.

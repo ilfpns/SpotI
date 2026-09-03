@@ -49,6 +49,11 @@
 - **`SpotI-<version>-portable.exe`** —— 单个独立可执行文件，无需安装
   步骤、无需管理员权限，双击即可运行。
 
+> **在 Windows 上运行 `npm run dist` 时出现 "Cannot create symbolic
+> link"？** electron-builder 在解压自带工具时需要创建符号链接的权限。
+> 打开 **设置 → 隐私和安全性 → 开发者选项 → 开发者模式**，然后重新运行
+> `npm run dist` —— 只需开启一次即可。
+
 运行该应用的每个人都会在设置界面（上面第 4 步）中配置自己的 Client ID ——
 构建产物本身不包含任何 Spotify 相关的固定信息。
 

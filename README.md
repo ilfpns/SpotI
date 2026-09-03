@@ -50,6 +50,12 @@ set a `SPOTIFY_CLIENT_ID` environment variable, which takes priority.)
 - **`SpotI-<version>-portable.exe`** — a single self-contained `.exe`, no
   install step, no admin rights, just double-click and run.
 
+> **Windows: "Cannot create symbolic link" during `npm run dist`?**
+> electron-builder needs permission to create symbolic links while
+> extracting one of its own bundled tools. Turn on **Settings → Privacy
+> & security → For developers → Developer Mode**, then run `npm run
+> dist` again — this is a one-time fix.
+
 Each person who runs the built app configures their own Client ID from
 Settings (step 4 above) — nothing Spotify-related is baked into the build.
 
