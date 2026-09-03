@@ -152,3 +152,57 @@ describe("pollingService optimistic play/pause sync", () => {
     expect(state.sendCalls.at(-1)?.isPlaying).toBe(false);
   });
 });
+
+describe("pollingService cache freshness (getLastKnownState)", () => {
+  let mod: typeof import("./pollingService");
+
+  beforeEach(async () => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    state.getNowPlayingQueue = [];
+    state.sendCalls = [];
+    mod = await import("./pollingService");
+  });
+
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
+  it("getLastKnownState().volumePercent stays fresh across polls even when track/isPlaying don't change (the getVolume IPC handler reads this cache)", async () => {
+    immediatePoll(track(true));
+    await mod.pollNow();
+    expect(mod.getLastKnownState()?.volumePercent).toBe(80);
+
+    immediatePoll({ ...track(true), volumePercent: 33 });
+    await mod.pollNow();
+    // trackId/isPlaying are unchanged from the first poll, so this doesn't
+    // broadcast — but the cache itself must still pick up the new volume.
+    expect(mod.getLastKnownState()?.volumePercent).toBe(33);
+  });
+
+  it("a shuffle-only change still broadcasts, so the popup's optimistic shuffle toggle reconciles with what Spotify actually did", async () => {
+    immediatePoll(track(true));
+    await mod.pollNow();
+    expect(state.sendCalls).toHaveLength(1);
+
+    // Same track, same isPlaying — only shuffleState differs (e.g. Spotify
+    // rejected/overrode a setShuffle(true) call from the popup).
+    immediatePoll({ ...track(true), shuffleState: true });
+    await mod.pollNow();
+
+    expect(state.sendCalls).toHaveLength(2);
+    expect(state.sendCalls.at(-1)?.shuffleState).toBe(true);
+  });
+
+  it("a repeat-only change still broadcasts, for the same reconciliation reason", async () => {
+    immediatePoll(track(true));
+    await mod.pollNow();
+
+    immediatePoll({ ...track(true), repeatState: "track" });
+    await mod.pollNow();
+
+    expect(state.sendCalls).toHaveLength(2);
+    expect(state.sendCalls.at(-1)?.repeatState).toBe("track");
+  });
+});

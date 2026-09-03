@@ -51,10 +51,24 @@ function broadcastNowPlaying(state: NowPlayingState | null) {
 // counted as if the whole gap was spent listening.
 const MAX_LISTENING_CREDIT_MS = 5_000;
 
+// shuffleState/repeatState are included because the popup's shuffle/repeat
+// buttons update optimistically on click and rely on the next
+// onNowPlayingChanged broadcast to reconcile with what Spotify actually did
+// (same pattern as isPlaying) — if Spotify ignores or overrides a toggle
+// and this comparison didn't notice, the popup would keep showing the wrong
+// state indefinitely, since nothing else re-broadcasts on those fields
+// alone. progressMs/volumePercent are deliberately excluded: progress is
+// interpolated client-side rather than pushed every tick, and volume has
+// its own direct getVolume() read path.
 function statesEqual(a: NowPlayingState | null, b: NowPlayingState | null): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
-  return a.trackId === b.trackId && a.isPlaying === b.isPlaying;
+  return (
+    a.trackId === b.trackId &&
+    a.isPlaying === b.isPlaying &&
+    a.shuffleState === b.shuffleState &&
+    a.repeatState === b.repeatState
+  );
 }
 
 async function notifyTrackChanged(state: NowPlayingState) {
@@ -108,9 +122,18 @@ async function tick() {
       );
     }
 
-    if (!statesEqual(lastState, nextState)) {
-      const trackChanged = !!nextState?.trackId && nextState.trackId !== lastState?.trackId;
-      lastState = nextState;
+    // statesEqual only looks at trackId/isPlaying — deliberately, so a
+    // renderer isn't re-notified over an unchanged track/playback state.
+    // lastState itself must NOT be gated the same way: getLastKnownState()
+    // is used as a cache for reads that aren't trackId/isPlaying (e.g. the
+    // getVolume IPC handler reads cached.volumePercent) — gating the
+    // assignment here left volume/shuffle/repeat/progress frozen at
+    // whatever they were during the last trackId/isPlaying change, even
+    // though every tick was fetching fresh values for them the whole time.
+    const changed = !statesEqual(lastState, nextState);
+    const trackChanged = changed && !!nextState?.trackId && nextState.trackId !== lastState?.trackId;
+    lastState = nextState;
+    if (changed) {
       broadcastNowPlaying(nextState);
       if (trackChanged && hasPolledOnce && nextState?.isPlaying) {
         void notifyTrackChanged(nextState);
