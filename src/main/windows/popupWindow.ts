@@ -42,6 +42,12 @@ export function createPopupWindow(): BrowserWindow {
       preload: join(__dirname, "../preload/preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      // The popup sits hidden/occluded almost all the time (only shown on
+      // hover), which is exactly when Chromium's default background
+      // throttling kicks in — without this, its disc spin, title marquee,
+      // and now-playing-color extraction can all lag noticeably behind
+      // real state changes while it's not the visible window.
+      backgroundThrottling: false,
     },
   });
 

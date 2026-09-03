@@ -25,6 +25,10 @@ interface StoredTheme {
   borderColor: string;
   discName: string;
   followNowPlayingColor: boolean;
+  // The LP color from just before "follow now-playing color" was last
+  // turned on, so turning it back off can restore it instead of leaving
+  // the LP stuck on whatever track it last extracted from.
+  preFollowLabelColor: string | null;
   caseShape: CaseShape;
 }
 
@@ -63,6 +67,7 @@ function load(): StoredTheme {
         discName: typeof parsed?.discName === "string" ? sanitizeDiscName(parsed.discName) : DEFAULT_DISC_NAME,
         followNowPlayingColor:
           typeof parsed?.followNowPlayingColor === "boolean" ? parsed.followNowPlayingColor : false,
+        preFollowLabelColor: isHexColor(parsed?.preFollowLabelColor) ? parsed.preFollowLabelColor : null,
         caseShape: isCaseShape(parsed?.caseShape) ? parsed.caseShape : DEFAULT_CASE_SHAPE,
       };
       return cached;
@@ -80,6 +85,7 @@ function load(): StoredTheme {
     borderColor: DEFAULT_BORDER_COLOR,
     discName: DEFAULT_DISC_NAME,
     followNowPlayingColor: false,
+    preFollowLabelColor: null,
     caseShape: DEFAULT_CASE_SHAPE,
   };
   return cached;
@@ -162,6 +168,15 @@ export function getFollowNowPlayingColor(): boolean {
 }
 export function setFollowNowPlayingColor(value: boolean): void {
   load().followNowPlayingColor = value;
+  persist();
+}
+
+export function getPreFollowLabelColor(): string | null {
+  return load().preFollowLabelColor;
+}
+export function setPreFollowLabelColor(color: string | null): void {
+  if (color !== null && !isHexColor(color)) return;
+  load().preFollowLabelColor = color;
   persist();
 }
 

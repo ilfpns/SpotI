@@ -30,6 +30,8 @@ import {
   setDiscName,
   getFollowNowPlayingColor,
   setFollowNowPlayingColor,
+  getPreFollowLabelColor,
+  setPreFollowLabelColor,
   getCaseShape,
   setCaseShape,
 } from "../themeStore";
@@ -349,8 +351,28 @@ export function registerIpcHandlers() {
   });
 
   ipcMain.handle(IpcChannels.getFollowNowPlayingColor, () => getFollowNowPlayingColor());
-  ipcMain.on(IpcChannels.setFollowNowPlayingColor, (_e, value: boolean) => {
+  ipcMain.on(IpcChannels.setFollowNowPlayingColor, async (_e, value: boolean) => {
     setFollowNowPlayingColor(value);
+
+    if (value) {
+      // Turning it on: remember the color it was on, so turning it back
+      // off has something to restore instead of leaving the LP stuck on
+      // whatever it last extracted.
+      setPreFollowLabelColor(getLabelColor());
+    } else {
+      const previous = getPreFollowLabelColor();
+      if (previous) {
+        setLabelColor(previous);
+        setPreFollowLabelColor(null);
+        invalidatePetIconCache();
+        for (const win of BrowserWindow.getAllWindows()) {
+          win.webContents.send(IpcChannels.labelColorChanged, previous);
+        }
+        const icon = await getPetIcon();
+        getPetTrayIconSetter()?.(icon);
+      }
+    }
+
     for (const win of BrowserWindow.getAllWindows()) {
       win.webContents.send(IpcChannels.followNowPlayingColorChanged, value);
     }
@@ -405,6 +427,7 @@ export function registerIpcHandlers() {
     setBorderColor(DEFAULT_BORDER_COLOR);
     setDiscName(DEFAULT_DISC_NAME);
     setFollowNowPlayingColor(false);
+    setPreFollowLabelColor(null);
     setCaseShape(DEFAULT_CASE_SHAPE);
     setOpacity(100);
     applyPetOpacity();
