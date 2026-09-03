@@ -812,6 +812,79 @@ body {
   margin-top: 4px;
 }
 
+.favorite-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.favorite-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 4px;
+  border-radius: 8px;
+}
+
+.favorite-row:hover {
+  background: rgba(var(--ink), 0.04);
+}
+
+.favorite-row-art {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  background: rgba(var(--ink), 0.08);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.favorite-row-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.favorite-row-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.favorite-row-artist {
+  font-size: 12px;
+  color: rgba(var(--ink), 0.6);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.favorite-remove-button {
+  background: transparent;
+  border: none;
+  color: #ff4d67;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 120ms ease;
+}
+
+.favorite-remove-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.favorite-remove-button:hover {
+  background: rgba(255, 77, 103, 0.12);
+}
+
 /* Simple label/value info rows (version info, etc). */
 .info-rows {
   display: flex;

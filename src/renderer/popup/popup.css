@@ -160,8 +160,44 @@ body {
   overflow: hidden;
 }
 
+.meta .title:has(.heart-button) {
+  padding-right: 20px;
+}
+
 .meta .title .title-text {
   display: inline-block;
+}
+
+.heart-button {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  color: color-mix(in srgb, var(--font-color) 45%, transparent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 120ms ease, transform 120ms ease;
+}
+
+.heart-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.heart-button:hover {
+  color: #ff4d67;
+  transform: translateY(-50%) scale(1.12);
+}
+
+.heart-button.active {
+  color: #ff4d67;
 }
 
 .meta .title.marquee {

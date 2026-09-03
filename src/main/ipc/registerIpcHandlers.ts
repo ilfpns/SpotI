@@ -168,6 +168,24 @@ export function registerIpcHandlers() {
     return result;
   });
 
+  ipcMain.handle(IpcChannels.isTrackSaved, (_e, trackId: string) => spotifyApiClient.isTrackSaved(trackId));
+  ipcMain.handle(IpcChannels.saveTrack, (_e, trackId: string) => spotifyApiClient.saveTrack(trackId));
+  ipcMain.handle(IpcChannels.removeSavedTrack, (_e, trackId: string) => spotifyApiClient.removeSavedTrack(trackId));
+  ipcMain.handle(IpcChannels.getSavedTracks, (_e, limit: number, offset: number) =>
+    spotifyApiClient.getSavedTracks(limit, offset),
+  );
+
+  // Opens (or focuses) Settings and tells it to switch to the Favorite tab —
+  // sent immediately if the window's already loaded, or once did-finish-load
+  // fires for a freshly created one, so the renderer's nav is always ready
+  // to receive it.
+  ipcMain.on(IpcChannels.openSettingsFavorite, () => {
+    const win = showSettingsWindow();
+    const send = () => win.webContents.send(IpcChannels.navigateSettingsTab, "favorite");
+    if (win.webContents.isLoading()) win.webContents.once("did-finish-load", send);
+    else send();
+  });
+
   ipcMain.on(IpcChannels.moveTo, (_e, pos: { x: number; y: number }) => {
     const win = getPetWindow();
     if (win.isDestroyed()) return;

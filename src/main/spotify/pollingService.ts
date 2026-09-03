@@ -6,7 +6,7 @@ import type { NowPlayingState } from "../../shared/types";
 import { getNotifyTrackChange, getPollingSpeed, getNotificationSound } from "../appSettingsStore";
 import { getLocale } from "../localeStore";
 import { translate } from "../../shared/i18n";
-import { recordListening } from "../listeningHistoryStore";
+import { recordListening, recordTrackStart } from "../listeningHistoryStore";
 
 let timer: ReturnType<typeof setTimeout> | null = null;
 let currentIntervalMs = POLL_INTERVAL_IDLE_MS;
@@ -136,6 +136,7 @@ async function tick() {
     if (changed) {
       broadcastNowPlaying(nextState);
       if (trackChanged && hasPolledOnce && nextState?.isPlaying) {
+        recordTrackStart();
         void notifyTrackChanged(nextState);
       }
     }

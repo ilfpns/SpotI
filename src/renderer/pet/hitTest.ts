@@ -79,6 +79,18 @@ export function setupInteraction(
     if (didMove) {
       window.petAPI.savePosition();
       onDragChange(false);
+      // The main process clamps the real window position to stay on-screen
+      // (see clampToVisibleArea), which can end this drag somewhere other
+      // than winX/winY's own tally of dragStartWinX + total mouse delta —
+      // re-sync from the real position now, so the *next* drag's baseline
+      // (captured from winX/winY at its own pointerdown) reflects where the
+      // window actually is rather than where this drag's raw math thought
+      // it was. Without this, one drag landing against an edge silently
+      // drifts every later drag's baseline on that axis.
+      window.petAPI.getPosition().then((pos) => {
+        winX = pos.x;
+        winY = pos.y;
+      });
     } else {
       onClick?.();
     }

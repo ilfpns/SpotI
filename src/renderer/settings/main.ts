@@ -6,6 +6,7 @@ import { initThemePage } from "./pages/ThemePage";
 import { initCasePage } from "./pages/CasePage";
 import { initAnimationPage } from "./pages/AnimationPage";
 import { initHistoryPage } from "./pages/HistoryPage";
+import { initFavoritePage } from "./pages/FavoritePage";
 
 await initI18n();
 
@@ -74,13 +75,18 @@ onLocaleChange(applyTranslations);
 const navItems = document.querySelectorAll<HTMLButtonElement>(".nav-item");
 const pages = document.querySelectorAll<HTMLElement>(".page");
 
+function switchToPage(target: string) {
+  navItems.forEach((n) => n.classList.toggle("active", n.dataset.page === target));
+  pages.forEach((p) => (p.hidden = p.dataset.page !== target));
+}
+
 navItems.forEach((nav) => {
-  nav.addEventListener("click", () => {
-    const target = nav.dataset.page;
-    navItems.forEach((n) => n.classList.toggle("active", n === nav));
-    pages.forEach((p) => (p.hidden = p.dataset.page !== target));
-  });
+  nav.addEventListener("click", () => switchToPage(nav.dataset.page!));
 });
+
+// Sent when the popup's heart button opens Settings directly to a tab
+// (e.g. Favorite) rather than the user clicking a nav item themselves.
+window.petAPI.onNavigateSettingsTab(switchToPage);
 
 // One init call per settings page.
 initSpotifyPage();
@@ -89,3 +95,4 @@ initThemePage();
 initCasePage();
 initAnimationPage();
 initHistoryPage();
+initFavoritePage();

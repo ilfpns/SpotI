@@ -4,7 +4,7 @@ import type { AuthStatus, NowPlayingState, SpotifyResult } from "../shared/types
 import type { Locale } from "../shared/i18n";
 import type { UiTheme, UiThemePreference, CaseShape } from "../shared/theme";
 import type { PetSize, PollingSpeed, HoverDelay, CaseSlideSpeed, DiscSpinSpeed } from "../shared/constants";
-import type { BestTrack, HistorySummary } from "../shared/types";
+import type { BestTrack, HistorySummary, SavedTracksPage } from "../shared/types";
 import type { UpdateCheckResult } from "../main/updateChecker";
 
 const petAPI = {
@@ -351,6 +351,26 @@ const petAPI = {
     setRepeat(mode: "off" | "context" | "track"): Promise<SpotifyResult<void>> {
       return ipcRenderer.invoke(IpcChannels.setRepeat, mode);
     },
+    isTrackSaved(trackId: string): Promise<SpotifyResult<boolean>> {
+      return ipcRenderer.invoke(IpcChannels.isTrackSaved, trackId);
+    },
+    saveTrack(trackId: string): Promise<SpotifyResult<void>> {
+      return ipcRenderer.invoke(IpcChannels.saveTrack, trackId);
+    },
+    removeSavedTrack(trackId: string): Promise<SpotifyResult<void>> {
+      return ipcRenderer.invoke(IpcChannels.removeSavedTrack, trackId);
+    },
+    getSavedTracks(limit: number, offset: number): Promise<SpotifyResult<SavedTracksPage>> {
+      return ipcRenderer.invoke(IpcChannels.getSavedTracks, limit, offset);
+    },
+  },
+  openSettingsFavorite() {
+    ipcRenderer.send(IpcChannels.openSettingsFavorite);
+  },
+  onNavigateSettingsTab(cb: (tab: string) => void) {
+    const handler = (_e: unknown, tab: string) => cb(tab);
+    ipcRenderer.on(IpcChannels.navigateSettingsTab, handler);
+    return () => ipcRenderer.removeListener(IpcChannels.navigateSettingsTab, handler);
   },
 };
 

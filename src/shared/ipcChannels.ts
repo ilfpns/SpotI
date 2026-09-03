@@ -118,4 +118,12 @@ export const IpcChannels = {
   getBestTrackForDay: "history:get-best-track-for-day",
 
   resetSettings: "settings:reset",
+
+  isTrackSaved: "spotify:is-track-saved",
+  saveTrack: "spotify:save-track",
+  removeSavedTrack: "spotify:remove-saved-track",
+  getSavedTracks: "spotify:get-saved-tracks",
+
+  openSettingsFavorite: "settings:open-favorite",
+  navigateSettingsTab: "settings:navigate-tab",
 } as const;

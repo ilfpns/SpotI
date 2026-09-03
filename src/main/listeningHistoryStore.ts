@@ -17,6 +17,8 @@ interface TrackBucket {
 
 interface DayBucket {
   totalMs: number;
+  /** How many times a track *started* playing this day (distinct from totalMs, which measures duration) — optional on read since days recorded before this field existed won't have it. */
+  playCount?: number;
   tracks: Record<string, TrackBucket>;
 }
 
@@ -119,6 +121,17 @@ export function recordListening(
   scheduleFlush();
 }
 
+/** Call once per genuine track change while playing (not on every poll tick) — see pollingService's own trackChanged detection, which this reuses. */
+export function recordTrackStart(): void {
+  const store = load();
+  const key = dateKey(new Date());
+  const isNewDay = !store.days[key];
+  const day = (store.days[key] ??= { totalMs: 0, playCount: 0, tracks: {} });
+  if (isNewDay) pruneOldDays(store);
+  day.playCount = (day.playCount ?? 0) + 1;
+  scheduleFlush();
+}
+
 // Jan 1 through Dec 31 of the given year — or through today, for the
 // current year, since there's no listening data for the future.
 function daySummariesForYear(year: number): DaySummary[] {
@@ -131,7 +144,7 @@ function daySummariesForYear(year: number): DaySummary[] {
   const d = new Date(year, 0, 1);
   while (d <= end) {
     const key = dateKey(d);
-    result.push({ date: key, totalMs: store.days[key]?.totalMs ?? 0 });
+    result.push({ date: key, totalMs: store.days[key]?.totalMs ?? 0, playCount: store.days[key]?.playCount ?? 0 });
     d.setDate(d.getDate() + 1);
   }
   return result;
@@ -164,6 +177,7 @@ export function getBestTrackForDay(date: string): BestTrack | null {
 function summarize(summaries: DaySummary[]): HistorySummary {
   const totalMs = summaries.reduce((sum, d) => sum + d.totalMs, 0);
   const thisWeekMs = summaries.slice(-7).reduce((sum, d) => sum + d.totalMs, 0);
+  const playCount = summaries.reduce((sum, d) => sum + d.playCount, 0);
 
   let bestDay: { date: string; ms: number } | null = null;
   for (const d of summaries) {
@@ -190,7 +204,7 @@ function summarize(summaries: DaySummary[]): HistorySummary {
     else break;
   }
 
-  return { days: summaries, totalMs, thisWeekMs, bestDay, averageMsPerDay, longestStreakDays, currentStreakDays };
+  return { days: summaries, totalMs, thisWeekMs, bestDay, averageMsPerDay, longestStreakDays, currentStreakDays, playCount };
 }
 
 export function getHistorySummaryForYear(year: number): HistorySummary {

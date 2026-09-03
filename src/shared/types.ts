@@ -35,6 +35,7 @@ export interface DaySummary {
   /** YYYY-MM-DD, local date. */
   date: string;
   totalMs: number;
+  playCount: number;
 }
 
 export interface BestTrack {
@@ -54,4 +55,22 @@ export interface HistorySummary {
   averageMsPerDay: number;
   longestStreakDays: number;
   currentStreakDays: number;
+  /** Number of distinct times a track started playing (a track-change landing on a poll while playing) — not the same as totalMs, which measures duration rather than play count. */
+  playCount: number;
+}
+
+export interface SavedTrack {
+  trackId: string;
+  title: string | null;
+  artist: string | null;
+  albumArtUrl: string | null;
+  /** ISO timestamp from Spotify's own record of when the track was saved. */
+  addedAt: string;
+}
+
+export interface SavedTracksPage {
+  items: SavedTrack[];
+  total: number;
+  limit: number;
+  offset: number;
 }

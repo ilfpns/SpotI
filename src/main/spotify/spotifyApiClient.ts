@@ -1,5 +1,5 @@
 import { ensureAccessToken } from "./authService";
-import type { NowPlayingState, SpotifyErrorCode, SpotifyResult } from "../../shared/types";
+import type { NowPlayingState, SavedTracksPage, SpotifyErrorCode, SpotifyResult } from "../../shared/types";
 
 const API_BASE = "https://api.spotify.com/v1";
 
@@ -175,6 +175,61 @@ export function setRepeat(mode: "off" | "context" | "track"): Promise<SpotifyRes
   return callWithErrorMapping(async () => {
     const { status } = await spotifyFetch(`/me/player/repeat?state=${mode}`, { method: "PUT" });
     assertOkOrThrow(status);
+  });
+}
+
+export function isTrackSaved(trackId: string): Promise<SpotifyResult<boolean>> {
+  return callWithErrorMapping(async () => {
+    const { status, json } = await spotifyFetch(`/me/tracks/contains?ids=${encodeURIComponent(trackId)}`);
+    assertOkOrThrow(status);
+    return Array.isArray(json) && json[0] === true;
+  });
+}
+
+export function saveTrack(trackId: string): Promise<SpotifyResult<void>> {
+  return callWithErrorMapping(async () => {
+    const { status } = await spotifyFetch(`/me/tracks?ids=${encodeURIComponent(trackId)}`, { method: "PUT" });
+    assertOkOrThrow(status);
+  });
+}
+
+export function removeSavedTrack(trackId: string): Promise<SpotifyResult<void>> {
+  return callWithErrorMapping(async () => {
+    const { status } = await spotifyFetch(`/me/tracks?ids=${encodeURIComponent(trackId)}`, { method: "DELETE" });
+    assertOkOrThrow(status);
+  });
+}
+
+export function getSavedTracks(limit: number, offset: number): Promise<SpotifyResult<SavedTracksPage>> {
+  return callWithErrorMapping(async () => {
+    const { status, json } = await spotifyFetch(`/me/tracks?limit=${limit}&offset=${offset}`);
+    assertOkOrThrow(status);
+    const body = json as {
+      items: {
+        added_at: string;
+        track: {
+          id: string;
+          name: string;
+          artists: { name: string }[];
+          album: { images: { url: string }[] };
+        };
+      }[];
+      total: number;
+      limit: number;
+      offset: number;
+    };
+    return {
+      items: body.items.map((it) => ({
+        trackId: it.track.id,
+        title: it.track.name,
+        artist: it.track.artists.map((a) => a.name).join(", "),
+        albumArtUrl: it.track.album.images[0]?.url ?? null,
+        addedAt: it.added_at,
+      })),
+      total: body.total,
+      limit: body.limit,
+      offset: body.offset,
+    };
   });
 }
 

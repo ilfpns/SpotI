@@ -51,6 +51,14 @@
             </svg>
             <span data-i18n="nav.history"></span>
           </button>
+          <button class="nav-item" data-page="favorite">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 20.5s-7.5-4.6-10-9.3C.5 7.8 2.4 4.5 6 4.5c2.1 0 3.6 1.1 4.5 2.6.4.7 1.6.7 2 0C13.4 5.6 14.9 4.5 17 4.5c3.6 0 5.5 3.3 4 6.7-2.5 4.7-10 9.3-10 9.3z"
+              />
+            </svg>
+            <span data-i18n="nav.favorite"></span>
+          </button>
           <button class="nav-item" data-page="spotify">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
               <path
@@ -317,6 +325,10 @@
                 <div id="history-average" class="history-stat-value"></div>
                 <div class="history-stat-label" data-i18n="history.average"></div>
               </div>
+              <div class="history-stat">
+                <div id="history-play-count" class="history-stat-value"></div>
+                <div class="history-stat-label" data-i18n="history.playCount"></div>
+              </div>
             </div>
             <div class="history-streaks">
               <div class="history-stat">
@@ -373,6 +385,16 @@
           <div class="card">
             <div id="history-best-track-title" class="card-title"></div>
             <div id="history-best-track" class="history-best-track"></div>
+          </div>
+        </section>
+
+        <section class="page" data-page="favorite" hidden>
+          <h1 data-i18n="page.favorite.title"></h1>
+
+          <div class="card">
+            <div id="favorite-list" class="favorite-list"></div>
+            <div id="favorite-empty" class="card-desc" data-i18n="favorite.empty" hidden></div>
+            <button id="favorite-load-more" class="secondary-button" data-i18n="favorite.loadMore" hidden></button>
           </div>
         </section>
 

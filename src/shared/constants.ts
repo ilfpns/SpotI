@@ -5,6 +5,11 @@ export const SPOTIFY_SCOPES = [
   "user-read-playback-state",
   "user-modify-playback-state",
   "user-read-currently-playing",
+  // Needed for the Favorite feature's PUT/DELETE/GET /me/tracks calls
+  // (save/remove/check Liked Songs) — without these, Spotify correctly
+  // rejects those calls with a 403 no matter what the client code does.
+  "user-library-modify",
+  "user-library-read",
 ].join(" ");
 
 export const POLL_INTERVAL_IDLE_MS = 3_000;

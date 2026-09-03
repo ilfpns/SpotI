@@ -157,6 +157,7 @@ export async function initHistoryPage() {
   const weekEl = document.getElementById("history-week") as HTMLElement;
   const bestDayEl = document.getElementById("history-best-day") as HTMLElement;
   const averageEl = document.getElementById("history-average") as HTMLElement;
+  const playCountEl = document.getElementById("history-play-count") as HTMLElement;
   const longestStreakEl = document.getElementById("history-longest-streak") as HTMLElement;
   const currentStreakEl = document.getElementById("history-current-streak") as HTMLElement;
   const grid2d = document.getElementById("history-heatmap-2d") as HTMLElement;
@@ -169,6 +170,7 @@ export async function initHistoryPage() {
     weekEl.textContent = formatDuration(summary.thisWeekMs);
     bestDayEl.textContent = summary.bestDay ? formatDuration(summary.bestDay.ms) : "—";
     averageEl.textContent = formatDuration(summary.averageMsPerDay);
+    playCountEl.textContent = String(summary.playCount);
     longestStreakEl.textContent = `${summary.longestStreakDays}${t("history.days")}`;
     currentStreakEl.textContent = `${summary.currentStreakDays}${t("history.days")}`;
   }
