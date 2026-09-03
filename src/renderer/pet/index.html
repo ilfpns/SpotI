@@ -19,21 +19,50 @@
         height: 100%;
         display: block;
       }
-      /* Click the pet to slide the sleeve (and its printed name) down and
-         to the right, off the LP entirely — click again and it slides back
-         up and to the left, landing right back where it overlaps the LP.
+      /* Click the pet to slide the sleeve (and its printed name) off —
+         not a straight diagonal, but a bent "hook" path: it goes left
+         first, then slides down and away to disappear. Coming back
+         reverses the exact same path (up, then right) to land back where
+         it overlaps the LP. A plain CSS transition can only interpolate
+         start->end along one straight line, so a real bent path needs two
+         keyframe animations (one per direction) instead — JS (main.ts)
+         swaps which one is applied and forces a reflow so it can restart
+         cleanly on every click, even mid-animation.
          will-change promotes this to its own GPU layer so the slide stays
          smooth instead of janking against the rest of the SVG repainting. */
       #pet-case-group {
         will-change: transform;
-        transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
       }
-      #pet-root.revealed #pet-case-group {
-        /* +70/+70 clears the widest case shape (the "cut" shape's own
-           leftmost point at x=-3 for classic, x=18 for cut) off the 0-64
-           canvas on the x-axis alone, with the down-right diagonal on top
-           purely for the exit motion. */
-        transform: translate(70px, 70px);
+      #pet-case-group.case-animate-away {
+        animation: pet-case-away 380ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+      #pet-case-group.case-animate-home {
+        animation: pet-case-home 380ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+      /* -75/+90 clears the widest case shape (the "cut" shape's own
+         leftmost point at x=18, or classic's x=-3) off the 0-64 canvas on
+         the x-axis alone, well before the fall reaches its full depth. */
+      @keyframes pet-case-away {
+        0% {
+          transform: translate(0, 0);
+        }
+        40% {
+          transform: translate(-65px, 0);
+        }
+        100% {
+          transform: translate(-75px, 90px);
+        }
+      }
+      @keyframes pet-case-home {
+        0% {
+          transform: translate(-75px, 90px);
+        }
+        60% {
+          transform: translate(-65px, 0);
+        }
+        100% {
+          transform: translate(0, 0);
+        }
       }
       /* Rotation itself is driven from JS (main.ts), not CSS animation, so
          the disc can freeze exactly where it stopped and pick back up from

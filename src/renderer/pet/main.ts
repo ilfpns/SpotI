@@ -49,15 +49,27 @@ window.petAPI.onCaseShapeChanged((shape) => {
   document.getElementById("pet-case")?.setAttribute("d", casePathFor(shape));
 });
 
-// The case-slide transition duration is user-configurable (Settings ->
-// Animation) — the stylesheet's own duration is just the "normal" default,
+// The case-slide duration is user-configurable (Settings -> Animation) —
+// the stylesheet's own keyframe animations just default to "normal",
 // overridden here via inline style once the real setting is known.
 const caseGroup = petRoot.querySelector("#pet-case-group") as SVGGElement | null;
 function applyCaseSlideDuration(speed: CaseSlideSpeed) {
-  if (caseGroup) caseGroup.style.transitionDuration = `${CASE_SLIDE_DURATION_MS[speed]}ms`;
+  if (caseGroup) caseGroup.style.animationDuration = `${CASE_SLIDE_DURATION_MS[speed]}ms`;
 }
 window.petAPI.getCaseSlideSpeed().then(applyCaseSlideDuration);
 window.petAPI.onCaseSlideSpeedChanged(applyCaseSlideDuration);
+
+// Swaps which keyframe animation is applied (away vs. home — see
+// index.html) rather than relying on a plain CSS transition, since the
+// slide is a bent "right, then down" path rather than a straight line.
+// Removing both classes and forcing a reflow before adding the new one
+// lets this restart cleanly even if clicked again mid-animation.
+function setCaseRevealed(revealed: boolean) {
+  if (!caseGroup) return;
+  caseGroup.classList.remove("case-animate-away", "case-animate-home");
+  void caseGroup.getBoundingClientRect(); // force a reflow so the animation restarts
+  caseGroup.classList.add(revealed ? "case-animate-away" : "case-animate-home");
+}
 
 // Driven manually with rAF (rather than a CSS animation) so the disc can
 // stop exactly wherever it is when the case slides back on, and pick back
@@ -111,6 +123,8 @@ function setSpinning(next: boolean) {
   }
 }
 
+let revealed = false;
+
 setupInteraction(
   petSvg,
   () => {
@@ -120,7 +134,8 @@ setupInteraction(
     // A plain click (no drag) slides the sleeve fully off (revealing the
     // whole LP, and starting it spinning) — click again to slide it back on
     // (freezing the disc where it is).
-    const revealed = petRoot.classList.toggle("revealed");
+    revealed = !revealed;
+    setCaseRevealed(revealed);
     setSpinning(revealed);
   },
 );
